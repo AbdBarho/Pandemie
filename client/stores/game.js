@@ -1,17 +1,20 @@
-const d = require('./GameState.json');
-
-
 const state = {
-  gameState: d,
+  allStates: [],
+  current: {},
   actions: []
 };
 
 const getters = {
-  getGameState: state => state.gameState,
+  getGameState: state => state.current,
+  getGameStatus: state => state.status,
+  getAllStates: state => state.allStates
 };
 
 const mutations = {
-  setGameState: (state, newState) => state.gameState = newState,
+  addNewRound: (state, roundState) => {
+    state.allStates.push(roundState);
+    state.current = roundState;
+  }
 };
 
 export default {

@@ -13,7 +13,7 @@ div(@click.self='close')
     | {{ '\u00A0'.repeat(3) + preview.string + (preview.full ? '' : ' ...' )}}
   div.indent(v-else)
     template(v-for='[key, val] of children')
-      JSONRenderer(:name='key' :value='val' :key='key')
+      JSONRenderer(:name='key' :value='val' :parentKey='openKey' :key='key')
 
 
 </template>
@@ -22,7 +22,8 @@ export default {
   name: "JSONRenderer",
   props: {
     name: { required: false },
-    value: { required: true }
+    value: { required: true },
+    parentKey: {required: false, default: ''}
   },
   methods: {
     notObj(val) {
@@ -32,16 +33,19 @@ export default {
       return !this.notObj(val);
     },
     toggle() {
-      this.$store.commit("setOpen", { name: this.name, val: !this.isOpen });
+      this.$store.commit("setOpen", { name: this.openKey, val: !this.isOpen });
     },
     close() {
       if (this.isOpen)
-        this.$store.commit("setOpen", { name: this.name, val: false });
+        this.$store.commit("setOpen", { name: this.openKey, val: false });
     }
   },
   computed: {
+    openKey(){
+      return `${this.parentKey}/${this.name}`;
+    },
     isOpen() {
-      return this.$store.getters.isOpen(this.name);
+      return this.$store.getters.isOpen(this.openKey);
     },
     preview() {
       const str = JSON.stringify(this.value);
@@ -91,7 +95,7 @@ $purple: rgb(153, 128, 255);
     color: $lime;
   }
 
-  &[data-content="lose"] {
+  &[data-content="loss"] {
     color: $red;
   }
 

@@ -2,7 +2,7 @@
   "name": "pandemie",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "electron/index.js",
   "scripts": {
     "dev": "webpack --watch",
     "build": "webpack --mode=production",
@@ -11,7 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "socket.io": "^2.3.0"
   },
   "devDependencies": {
     "css-loader": "^3.2.0",
@@ -22,6 +23,7 @@
     "pug": "^2.0.4",
     "pug-plain-loader": "^1.0.0",
     "sass-loader": "^8.0.0",
+    "socket.io-client": "^2.3.0",
     "vue": "^2.6.10",
     "vue-loader": "^15.7.1",
     "vue-template-compiler": "^2.6.10",

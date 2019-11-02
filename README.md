@@ -15,7 +15,7 @@ npm run gui
 
 ### Start server
 ```
-node server/index.js
+node standalone_server/index.js
 ```
 
 ## Contribute

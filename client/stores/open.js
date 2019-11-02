@@ -1,6 +1,10 @@
 import Vue from 'vue';
 
-const state = { open: {} };
+const state = {
+  open: {
+    '/Game State': true
+  }
+};
 
 const getters = {
   isOpen: state => name => {
@@ -12,7 +16,7 @@ const getters = {
 };
 
 const mutations = {
-  setOpen: (state, {name, val}) => Vue.set(state.open, name, val)
+  setOpen: (state, { name, val }) => Vue.set(state.open, name, val)
 };
 
 export default {
