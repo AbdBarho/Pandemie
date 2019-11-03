@@ -13,11 +13,6 @@ npm install
 npm run gui
 ```
 
-### Start server
-```
-node standalone_server/index.js
-```
-
 ## Contribute
 
 Use [VSCode](https://code.visualstudio.com/download) with the [ESlint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)

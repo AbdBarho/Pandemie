@@ -1,17 +1,25 @@
 const state = {
   allStates: [],
-  current: {},
-  actions: []
+  current: {
+    cities:{}
+  },
+  actions: [],
+  finished: false
 };
 
 const getters = {
   getGameState: state => state.current,
-  getGameStatus: state => state.status,
-  getAllStates: state => state.allStates
+  getNumStates: state => state.allStates.length
 };
 
 const mutations = {
   addNewRound: (state, roundState) => {
+    if (roundState.outcome !== 'pending')
+      state.finished = true;
+    if (roundState.round === 1)
+      while (state.allStates.length)
+        state.allStates.pop();
+
     state.allStates.push(roundState);
     state.current = roundState;
   }

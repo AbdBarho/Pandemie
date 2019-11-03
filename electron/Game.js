@@ -1,6 +1,5 @@
 const path = require('path');
 const child_process = require('child_process');
-const { sleep } = require('./Utils');
 
 const gamePath = (() => {
   const binariesFolder = path.join(__dirname, '../', 'game_binaries');
@@ -34,15 +33,8 @@ class GameProcess {
     this.start();
   }
 
-  async restart() {
-    if (this.game)
-      this.game.kill();
-
-    //FIXME: hack to wait for the process to be terminated
-    while (this.game)
-      await sleep(200);
-
-    this.start();
+  restart() {
+    this.game.kill();
   }
 }
 

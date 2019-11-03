@@ -1,17 +1,29 @@
 <template lang="pug">
+
 div#MainWindow
-  h1 Pandemie
-  transition(name='bounce')
-    .gameState(v-if='show')
-      span Status: {{ outcome }}
-      button.send(@click='send') {{ outcome !== 'pending' ? 'New Round' : 'Send round end' }}
-      JSONRenderer.no-select(name='Game State' :value='gameState')
+  div.header
+    h1 Pandemie
+    button.send(@click='send') {{ outcome !== 'pending' ? 'New Round' : 'Send round end' }}
+    transition(name='bounce')
+      div(v-if='show')
+        Overview
+        JSONRenderer.no-select(name="Events" :value='gameState.events')
+
+  .pageContent
+    .column.left
+      .gameState
+        transition(name='bounce')
+          //- JSONRenderer.no-select(v-if='show' name='Cities' :value='gameState.cities')
+          Cities(v-if='show')
+    .column.right
 
 </template>
 
 <script>
 import { mapGetters } from "vuex";
 import JSONRenderer from "./JSONRenderer";
+import Overview from "./Overview";
+import Cities from "./Cities";
 
 export default {
   data() {
@@ -23,7 +35,7 @@ export default {
     this.$socket.on("newRound", data => {
       this.show = false;
       this.$store.commit("addNewRound", data);
-      setTimeout(() => (this.show = true), 200);
+      setTimeout(() => (this.show = true), 150);
     });
   },
   methods: {
@@ -32,41 +44,64 @@ export default {
     }
   },
   computed: {
-    ...mapGetters({ gameState: "getGameState" }),
+    ...mapGetters({ gameState: "getGameState", numStates: "getNumStates" }),
     outcome() {
       return this.gameState.outcome;
-    },
-    round() {
-      return this.gameState.round;
     }
   },
-  components: { JSONRenderer }
+  components: { JSONRenderer, Overview, Cities }
 };
 </script>
 
 <style lang="scss" scoped>
+$pad: 15px;
 #MainWindow {
-  max-width: 1000px;
-  // height: 100%;
-  margin: auto;
-  padding: 30px;
+  user-select: none;
+  // width: calc(100% - #{2 * $pad});
+  max-width: 1400px;
+  height: calc(100% - #{2 * $pad});
+  margin: 0 auto;
+  padding: $pad;
+  display: flex;
+  flex-flow: column;
+  .header {
+    margin-bottom: 20px;
+  }
 }
-.gameState {
-  position: relative;
-  // user-select: none;
-  padding-bottom: 400px;
-}
+
 .send {
   position: sticky;
   float: right;
-  top: 30px;
+  top: 5px;
 }
-
+.pageContent {
+  box-sizing: border-box;
+  height: calc(100% - #{2 * $pad});
+  width: 100%;
+  flex: 1;
+  display: flex;
+}
+.column {
+  flex-basis: 0;
+  flex: 1;
+  height: calc(100% - #{2 * $pad});
+  outline: 1px solid white;
+}
+.left {
+  flex: 1;
+}
+.gameState {
+  box-sizing: border-box;
+  height: calc(100%);
+  // padding: $pad;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
 .bounce-enter-active {
-  animation: bounce-in 0.2s;
+  animation: bounce-in 150ms;
 }
 .bounce-leave-active {
-  animation: bounce-in 0.2s reverse;
+  animation: bounce-in 150ms reverse;
 }
 @keyframes bounce-in {
   0% {

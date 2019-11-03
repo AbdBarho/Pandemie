@@ -61,9 +61,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-$lime: rgb(155, 236, 174);
-$red: rgb(200, 0, 0);
-$purple: rgb(153, 128, 255);
+@import './colors.scss';
+
 
 .toggle {
   display: inline-block;
@@ -76,71 +75,10 @@ $purple: rgb(153, 128, 255);
   padding-left: 30px;
 }
 
-.preview {
-  color: #666666;
+.preview{
+  color: #666;
 }
 
-.key[data-type="number"] {
-  color: $purple;
-}
-.value[data-type="number"] {
-  &[data-key="population"] {
-    color: $lime;
-  }
-  color: $purple;
-}
 
-.value[data-type="string"] {
-  &[data-content="win"] {
-    color: $lime;
-  }
-
-  &[data-content="loss"] {
-    color: $red;
-  }
-
-  @function reverse($list) {
-    $result: ();
-    @for $i from length($list) * -1 through -1 {
-      $result: append($result, nth($list, abs($i)));
-    }
-    @return $result;
-  }
-
-  $colors: red, red, yellow, chartreuse, chartreuse;
-  $ratings: "--", "-", "o", "+", "++";
-  $cityKeys: "economy", "government", "hygiene", "awareness";
-  $pathogenKeys: "infectivity", "mobility", "duration", "lethality";
-  $size: large;
-
-  @each $key in $cityKeys {
-    @each $rating in $ratings {
-      $index: index($ratings, $rating);
-      $color: nth($colors, $index);
-
-      &[data-key="#{$key}"] {
-        &[data-content="#{$rating}"] {
-          font-size: $size;
-          color: $color;
-        }
-      }
-    }
-  }
-
-  @each $key in $pathogenKeys {
-    $reversedColors: reverse($colors);
-    @each $rating in $ratings {
-      $index: index($ratings, $rating);
-      $color: nth($reversedColors, $index);
-
-      &[data-key="#{$key}"] {
-        &[data-content="#{$rating}"] {
-          font-size: $size;
-          color: $color;
-        }
-      }
-    }
-  }
-}
 
 </style>

@@ -9,7 +9,15 @@ express.use(Express.json({ limit: '100mb' }));
 express.use('/client', Express.static(path.join(__dirname, '../', 'client')));
 
 let clientSocket = null;
-io.on('connection', socket => (clientSocket = socket) && console.log('client connected'));
+io.on('connection', socket => {
+  if (clientSocket) {
+    console.error('ERROR: Do not refresh page from the window, always close and re-open');
+    process.exit(1);
+    return;
+  }
+  clientSocket = socket;
+  console.log('client connected');
+});
 
 async function waitForClient() {
   while (!clientSocket) {
