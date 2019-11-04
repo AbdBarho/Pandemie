@@ -1,7 +1,8 @@
 const state = {
   allStates: [],
   current: {
-    cities:{}
+    cities: {},
+    events: []
   },
   actions: [],
   finished: false

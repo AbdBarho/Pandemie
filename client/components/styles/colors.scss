@@ -1,15 +1,14 @@
-$lime: rgb(155, 236, 174);
-$red: rgb(200, 0, 0);
-$purple: rgb(152, 140, 255);
-
-$background: #111111;
-
+@import './variables.scss';
 
 .key[data-type="number"] {
   color: $purple;
 }
 
 .value[data-type="number"] {
+  &[data-key="points"] {
+    color: $lime;
+  }
+
   color: $purple;
 }
 

@@ -1,19 +1,20 @@
 <template lang="pug">
 div(@click.self='close')
+  template(v-if='onlyChildren')
+    JSONRenderer(v-for='[key, val] of children' :name='key' :value='val' :parentKey='openKey' :key='key')
+  template(v-else)
+    span.toggle.pointer(@click='toggle')
+      span(v-if='obj(value)') {{ isOpen ? '\u2b9f': '\u2b9e' }}
+    span.key(
+      @click='toggle' :class='{pointer: obj(value)}' :data-type='typeof name' :data-content='name'
+      ) {{ name + ': ' }}
 
-  span.toggle.pointer(@click='toggle')
-    span(v-if='obj(value)') {{ isOpen ? '\u2b9f': '\u2b9e' }}
-  span.key(
-    @click='toggle' :class='{pointer: obj(value)}' :data-type='typeof name' :data-content='name'
-    ) {{ name + ': ' }}
-
-  template(v-if='notObj(value)')
-    span.value(:data-type='typeof value' :data-content='value' :data-key='name') {{ value }}
-  span.preview(v-else-if='!isOpen' @click='toggle')
-    | {{ '\u00A0'.repeat(3) + preview.string + (preview.full ? '' : ' ...' )}}
-  div.indent(v-else)
-    template(v-for='[key, val] of children')
-      JSONRenderer(:name='key' :value='val' :parentKey='openKey' :key='key')
+    template(v-if='notObj(value)')
+      span.value(:data-type='typeof value' :data-content='value' :data-key='name') {{ value }}
+    span.preview(v-else-if='!isOpen' @click='toggle')
+      | {{ '\u00A0'.repeat(3) + preview.string + (preview.full ? '' : ' ...' )}}
+    div.indent(v-else)
+        JSONRenderer(v-for='[key, val] of children' :name='key' :value='val' :parentKey='openKey' :key='key')
 
 
 </template>
@@ -23,7 +24,8 @@ export default {
   props: {
     name: { required: false },
     value: { required: true },
-    parentKey: {required: false, default: ''}
+    parentKey: { required: false, default: "" },
+    onlyChildren: { required: false, default: false }
   },
   methods: {
     notObj(val) {
@@ -32,16 +34,18 @@ export default {
     obj(val) {
       return !this.notObj(val);
     },
+    setOpen(val) {
+      this.$store.commit("setOpen", { name: this.openKey, val });
+    },
     toggle() {
-      this.$store.commit("setOpen", { name: this.openKey, val: !this.isOpen });
+      this.setOpen(!this.isOpen);
     },
     close() {
-      if (this.isOpen)
-        this.$store.commit("setOpen", { name: this.openKey, val: false });
+      if (this.isOpen) this.setOpen(false);
     }
   },
   computed: {
-    openKey(){
+    openKey() {
       return `${this.parentKey}/${this.name}`;
     },
     isOpen() {
@@ -61,8 +65,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import './colors.scss';
-
+@import "./styles/colors.scss";
 
 .toggle {
   display: inline-block;
@@ -75,10 +78,7 @@ export default {
   padding-left: 30px;
 }
 
-.preview{
+.preview {
   color: #666;
 }
-
-
-
 </style>
