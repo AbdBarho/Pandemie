@@ -79,6 +79,6 @@ export default {
 }
 
 .preview {
-  color: #666;
+  color: $greyOut;
 }
 </style>

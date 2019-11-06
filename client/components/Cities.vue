@@ -4,7 +4,7 @@ table
     tr
       th.pointer(v-for='(label, i) in labels' :key='label' :title='firstUpper(keys[i])'
         @click='sort(keys[i])'
-      ) {{ label + ( sortedBy !== keys[i] ? "\u00A0\u00A0": (asc ? '\u2b9f': '\u2b9d') ) }}
+      ) {{ ( sortedBy !== keys[i] ? "\u00A0\u00A0": (asc ? '\u2b9f': '\u2b9d') )  + label }}
   tbody
     tr(v-for='city in cities' :key='city[0]' :class='{active: selectedCity === city[0]}'
     @click='selectCity(city[0])'
@@ -39,16 +39,8 @@ export default {
       selectedCity: "getSelectedCity"
     }),
     keys() {
-      return [
-        "name",
-        "population",
-        "economy",
-        "government",
-        "hygiene",
-        "awareness",
-        "connections",
-        "events"
-      ];
+      return [ "name", "population", "economy", "government", "hygiene", "awareness", "connections",
+      "events" ];
     },
     labels() {
       return ["Name", "Pop.", "Eco.", "Gov.", "Hyg.", "Awa.", "Con.", "Ev."];
@@ -71,7 +63,7 @@ export default {
       if(this.sortedBy === 'population' || this.sortedBy === 'connections' || this.sortedBy === 'events')
         return cities.sort((a, b) => this.asc ? a[index] - b[index]: b[index] - a[index])
 
-      console.log(this.sortedBy, this.keys.indexOf(this.sortedBy))
+      // console.log(this.sortedBy, this.keys.indexOf(this.sortedBy))
       return cities.sort((a, b) => {
         const aVal = GRADE_TO_NUMBER[a[index]];
         const bVal = GRADE_TO_NUMBER[b[index]];

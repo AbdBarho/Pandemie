@@ -21,8 +21,8 @@ class GameProcess {
   start() {
     const pro = child_process.spawn(gamePath, gameArgs);
     pro.on('exit', this._gameExit);
-    pro.stdout.on('data', function() {}); // clear buffer
-    pro.stderr.on('data', function() {}); // clear buffer
+    pro.stdout.on('data', function(a) {console.log(a.toString());}); // clear buffer
+    pro.stderr.on('data', function(a) { console.log(a.toString()); }); // clear buffer
     pro.stdin.on('data', function() {}); // clear buffer
     this.game = pro;
   }

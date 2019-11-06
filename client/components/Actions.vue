@@ -1,39 +1,165 @@
 <template lang="pug">
 div
-  div Event type
-  select(v-model='type')
-    option(value='putUnderQuarantine') putUnderQuarantine
-    option(value='closeAirport') closeAirport
-    option(value='closeConnection') closeConnection
-    option(value='developVaccine') developVaccine
-    option(value='deployVaccine') deployVaccine
-    option(value='developMedication') developMedication
-    option(value='deployMedication') deployMedication
-    option(value='exertInfluence') exertInfluence
-    option(value='callElections') callElections
-    option(value='applyHygienicMeasures') applyHygienicMeasures
-    option(value='launchCampaign') launchCampaign
-  //- div
-    button(v-for='t of all' :key='t' @click='type=t') {{ t }}
+  h4 Available Points:&nbsp;
+    span.value(data-type='number' data-key='points')
+      | {{available}}
+  table
+    thead
+      th(v-for='name in columnNames' :key='name') {{name}}
+    tbody
+      tr
+        td
+          select(v-model='type')
+            option(v-for='action in all' :key='action' :value='action') {{action}}
+        td
+          input(v-show='showNumRounds' type='number' min='1' max='99' v-model='numRounds')
+        td
+          span(v-show='showCity') {{ city }}
+        td
+          select(v-show='type === "closeConnection"' v-model='toCity')
+            option(v-for='neighbor in connections' :key='neighbor' :value='neighbor') {{ neighbor }}
+        td
+          select(v-show='showPathogen' v-model='pathogen')
+            option(v-for='p in pathogenNames' :key='p' :value='p') {{ p }}
+
+        td(:class='{error: !canAdd }') {{ cost }}
+        td
+          button(:disabled='!canAdd' :class='{deactivated: !canAdd}'  @click='add' title='add action') +
+      tr &nbsp;
+      tr
+        td(style='text-align:left') Actions:
+      tr(v-for='(action, index) in actions' :key='action.type + index')
+        td(v-for='col in ["type", "rounds", "city", "toCity", "pathogen", "cost"]')
+          template(v-if='col === "city" && !action.city') {{ action.fromCity}}
+          template(v-else) {{action[col]}}
+        td
+          button(@click='remove(index)') x
 
 
-  div(v-show='showCity') City: {{ city }}
-  div(v-show='type === "closeConnection"') To City
-    select(v-model='toCity')
-      option(v-for='neighbor in connections' :key='neighbor' :value='neighbor') {{ neighbor }}
-  div(v-show='showNumRounds')
-    | Number of rounds
-    input(type='number' min='1' max='99' v-model='numRounds')
 
-  div(v-if='showPathogen') Pathogen
-    select(v-model='pathogen')
-      option(v-for='p in pathogens' :key='p.name' :value='p.name') {{ p.name }}
+  button(@click='send') Execute actions & end round
 
-  button(@click='add') Add Action
-  button(@click='send') End round
 </template>
 
 <script>
+import { mapGetters } from "vuex";
+export default {
+  data() {
+    return {
+      type: "putUnderQuarantine",
+      toCity: "",
+      numRounds: 1,
+      pathogen: ""
+    };
+  },
+  methods: {
+    send() {
+      if (!confirm("Are u sure?")) return;
+      const actions = JSON.parse(JSON.stringify(this.actions));
+      actions.forEach(a => delete a.cost);
+      actions.push({ type: "endRound" })
+      console.log(actions);
+      this.$store.commit('clearActions');
+      this.$socket.emit("actions", actions);
+      // this.$socket.emit("actions", {type: "endRound"});
+    },
+    add() {
+      if (!this.canAdd) return;
+      const action = { type: this.type, cost: this.cost };
+      if (this.type === "closeConnection") {
+        action.fromCity = this.city;
+        action.toCity = this.toCity;
+      } else if (SHOW_CITY.has(this.type)) {
+        action.city = this.city;
+      }
+
+      if (SHOW_NUM_ROUNDS.has(this.type)) {
+        action.rounds = parseInt(this.numRounds);
+      }
+
+      if (SHOW_PATHOGEN.has(this.type)) {
+        action.pathogen = this.pathogen;
+      }
+      this.$store.commit("addAction", action);
+    },
+    remove(index) {
+      this.$store.commit("removeActionByIndex", index);
+    }
+  },
+  computed: {
+    ...mapGetters({
+      city: "getSelectedCity",
+      gameState: "getGameState",
+      pathogens: "getPathogens",
+      actions: "getActions"
+    }),
+    cost() {
+      const num = parseInt(this.numRounds);
+      switch (this.type) {
+        case "putUnderQuarantine":
+          return 10 * num + 20;
+        case "closeAirport":
+          return 5 * num + 15;
+        case "closeConnection":
+          return 3 * num + 3;
+        case "developVaccine":
+          return 40;
+        case "deployVaccine":
+          return 5;
+        case "developMedication":
+          return 10;
+        default:
+          return 3;
+      }
+    },
+    totalCost() {
+      return this.actions.reduce((a, b) => a + b.cost, 0);
+    },
+    available() {
+      return this.gameState.points - this.totalCost;
+    },
+    canAdd() {
+      return (
+        this.cost <= this.available &&
+        (this.type !== "closeConnection" ||
+          this.connections.indexOf(this.toCity) > -1) &&
+        (
+          !SHOW_PATHOGEN.has(this.type) ||
+          this.pathogenNames.indexOf(this.pathogen) > -1)
+      );
+    },
+    all() {
+      return All;
+    },
+    connections() {
+      return this.gameState.cities[this.city].connections;
+    },
+    pathogenNames(){
+      return this.pathogens.map(p => p.name)
+    },
+    showCity() {
+      return SHOW_CITY.has(this.type);
+    },
+    showNumRounds() {
+      return SHOW_NUM_ROUNDS.has(this.type);
+    },
+    showPathogen() {
+      return SHOW_PATHOGEN.has(this.type);
+    },
+    columnNames() {
+      return COL_NAMES;
+    }
+  }
+};
+const COL_NAMES = [
+  "Action Type",
+  "Rounds",
+  "City",
+  "To City",
+  "Pathogen",
+  "Cost",
+  ""
+];
 
 const SHOW_CITY = new Set([
   "putUnderQuarantine",
@@ -46,65 +172,80 @@ const SHOW_CITY = new Set([
   "applyHygienicMeasures",
   "launchCampaign"
 ]);
-
 const SHOW_NUM_ROUNDS = new Set([
   "putUnderQuarantine",
   "closeAirport",
   "closeConnection"
 ]);
-
 const SHOW_PATHOGEN = new Set([
   "deployMedication",
   "developMedication",
   "deployVaccine",
   "developVaccine"
 ]);
-
-const All = new Set([...SHOW_CITY, ...SHOW_NUM_ROUNDS, ...SHOW_NUM_ROUNDS])
-import { mapGetters } from "vuex";
-export default {
-  data() {
-    return {
-      type: "putUnderQuarantine",
-      toCity: "",
-      numRounds: 1,
-      pathogen: ''
-    };
-  },
-  methods: {
-    send() {
-      if (!confirm("Are u sure?")) return;
-      this.$socket.emit("actions", { type: "endRound" });
-    },
-    add(){
-      console.log(this.type, this.city,  this.toCity, this.numRounds, this.pathogen)
-    }
-  },
-  computed: {
-    ...mapGetters({
-      city: "getSelectedCity",
-      gameState: "getGameState",
-      pathogens: "getPathogens"
-    }),
-    all(){
-      return Array.from(All);
-    },
-    connections() {
-      // console.log(this.city, this.gameState[this.city]);
-      return this.gameState.cities[this.city].connections;
-    },
-    showCity() {
-      return SHOW_CITY.has(this.type);
-    },
-    showNumRounds() {
-      return SHOW_NUM_ROUNDS.has(this.type);
-    },
-    showPathogen() {
-      return SHOW_PATHOGEN.has(this.type);
-    }
-  }
-};
+const All = Array.from(
+  new Set([...SHOW_CITY, ...SHOW_PATHOGEN, ...SHOW_NUM_ROUNDS])
+);
 </script>
 
 <style lang='scss' scoped>
+@import "./styles/colors.scss";
+@import "./styles/variables.scss";
+
+table,
+tr,
+thead,
+tbody,
+td,
+th {
+  border-spacing: 0;
+}
+table {
+  text-align: center;
+  width: 100%;
+  margin-bottom: 20px;
+}
+th, td {
+  width: calc(100% / 6);
+}
+
+td:first-of-type {
+  text-align: left;
+}
+
+tr:hover {
+  background-color: $active;
+}
+tr:first-of-type:hover {
+  background-color: inherit;
+
+}
+
+button,
+select,
+input {
+  background-color: $background;
+  color: $textColor;
+  border: 1px solid white;
+  text-align: center;
+}
+
+button {
+  cursor: pointer;
+  &:hover {
+    background-color: $hover;
+  }
+  &.deactivated {
+    color: $greyOut;
+    cursor: initial;
+    border: 1px solid $greyOut;
+    background-color: $background;
+    &:hover {
+      background-color: $background;
+    }
+  }
+}
+.error {
+  color: $red;
+}
 </style>

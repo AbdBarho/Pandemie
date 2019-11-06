@@ -5,7 +5,7 @@ import store from './stores';
 Vue.config.productionTip = false;
 Vue.config.devtools = false;
 
-
+window.store = store;
 new Vue({
   el: '#app',
   store,

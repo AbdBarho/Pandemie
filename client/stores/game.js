@@ -12,7 +12,8 @@ const state = {
 const getters = {
   getGameState: state => state.current,
   getNumStates: state => state.allStates.length,
-  getPathogens: state => state.pathogens
+  getPathogens: state => state.pathogens,
+  getActions: state => state.actions
 };
 
 const mutations = {
@@ -29,7 +30,10 @@ const mutations = {
     state.pathogens = pathogens;
     state.allStates.push(roundState);
     state.current = roundState;
-  }
+  },
+  addAction: (state, action) => state.actions.push(action),
+  removeActionByIndex: (state, index) => state.actions.splice(index, 1),
+  clearActions: state => state.actions = []
 };
 
 export default {
