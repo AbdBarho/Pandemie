@@ -7,12 +7,15 @@ div
 
   AnimatedRender
     div.content
-      button(v-if='controlTab == "Actions"' @click='send') Send round end
+      Actions(v-if='controlTab == "Actions"')
       JSONRenderer(
         v-else-if='controlTab == "Events"' name="Events" :value='gameState.events' :onlyChildren='true'
       )
       JSONRenderer(
         v-else-if='controlTab == "City"' :value='gameState.cities[city]' :onlyChildren='true'
+      )
+      JSONRenderer(
+        v-else-if='controlTab == "Pathogens"' :value='pathogens' :onlyChildren='true'
       )
 
 
@@ -22,27 +25,26 @@ div
 import { mapGetters } from "vuex";
 import JSONRenderer from "./JSONRenderer";
 import AnimatedRender from "./AnimatedRender";
+import Actions from './Actions'
 
 export default {
   computed: {
     ...mapGetters({
       gameState: "getGameState",
       controlTab: "controlTab",
-      city: "getSelectedCity"
+      city: "getSelectedCity",
+      pathogens: "getPathogens"
     }),
     tabs() {
-      return ["Events", "Actions", "City"];
+      return ["Events", "Actions", "Pathogens", "City"];
     }
   },
   methods: {
     setActive(val) {
       this.$store.commit("setControlTab", val);
     },
-    send() {
-      this.$socket.emit("actions", { type: "endRound" });
-    }
   },
-  components: { JSONRenderer, AnimatedRender }
+  components: { JSONRenderer, AnimatedRender, Actions }
 };
 </script>
 

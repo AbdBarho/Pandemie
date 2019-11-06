@@ -17,9 +17,8 @@ const mutations = {
   },
   setControlTab: (state, newTab) => state.controlTab = newTab,
   setCity: (state, city) => {
-    state.controlTab = 'City';
     state.selectedCity = city;
-  }
+  },
 };
 
 export default {

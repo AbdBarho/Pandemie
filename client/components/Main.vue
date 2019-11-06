@@ -3,7 +3,6 @@ div#MainWindow
   //- h1 Pandemie
   .pageContent
     .column
-      //- Control
       div
         Overview
         Tabs
@@ -20,7 +19,7 @@ import { mapGetters } from "vuex";
 import JSONRenderer from "./JSONRenderer";
 import Cities from "./Cities";
 import AnimatedRender from "./AnimatedRender";
-import Control from "./Control";
+// import Control from "./Control";
 import Overview from './Overview'
 import Tabs from './Tabs';
 
@@ -28,7 +27,7 @@ export default {
   computed: {
     ...mapGetters({ gameState: "getGameState" })
   },
-  components: { JSONRenderer, Cities, AnimatedRender, Control, Overview, Tabs }
+  components: { JSONRenderer, Cities, AnimatedRender,  Overview, Tabs }
 };
 </script>
 
@@ -47,7 +46,7 @@ $pad: 15px;
   // max-width: 1400px;
   // margin: 0 auto;
 
-  user-select: none;
+  // user-select: none;
   display: flex;
   flex-flow: column;
 }

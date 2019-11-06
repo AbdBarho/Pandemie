@@ -9,7 +9,7 @@ const state = {
 const getters = {
   isOpen: state => name => {
     if (!Object.prototype.hasOwnProperty.call(state.open, name))
-      Vue.set(state.open, name, false);
+      Vue.set(state.open, name, true);
 
     return state.open[name];
   }
