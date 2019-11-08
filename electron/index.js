@@ -4,5 +4,5 @@ const server = require('./Socket');
 server.listen(50123, () => {
   require('./Window');
   console.log('Server listening on port 50123!');
-  setTimeout(() => Game.start(), 500);
+  setTimeout(() => Game.start(), 1000);
 });

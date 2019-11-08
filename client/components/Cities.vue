@@ -4,7 +4,7 @@ table
     tr
       th.pointer(v-for='(label, i) in labels' :key='label' :title='firstUpper(keys[i])'
         @click='sort(keys[i])'
-      ) {{ ( sortedBy !== keys[i] ? "\u00A0\u00A0": (asc ? '\u2b9f': '\u2b9d') )  + label }}
+      ) {{ label + ( sortedBy !== keys[i] ? "\u00A0\u00A0" : (asc ? '\u2b9f': '\u2b9d') ) }}
   tbody
     tr(v-for='city in cities' :key='city[0]' :class='{active: selectedCity === city[0]}'
     @click='selectCity(city[0])'
@@ -27,23 +27,25 @@ const GRADE_TO_NUMBER = {
 };
 export default {
   name: "Cities",
-  data() {
-    return {
-      sortedBy: 'events',
-      asc: false
-    };
-  },
   computed: {
     ...mapGetters({
       gameState: "getGameState",
-      selectedCity: "getSelectedCity"
+      firstState: "getFirst",
+      selectedCity: "getSelectedCity",
+      config: "getCitiesUIConfig"
     }),
+    sortedBy(){
+      return this.config.sortedBy;
+    },
+    asc(){
+      return this.config.asc
+    },
     keys() {
-      return [ "name", "population", "economy", "government", "hygiene", "awareness", "connections",
-      "events" ];
+      return [ "name", "population percent", "population", "economy", "government", "hygiene", "awareness",
+        "connections", "events" ];
     },
     labels() {
-      return ["Name", "Pop.", "Eco.", "Gov.", "Hyg.", "Awa.", "Con.", "Ev."];
+      return [ "Name", "Per.", "Pop.", "Eco.", "Gov.", "Hyg.", "Awa.", "Con.", "Ev." ];
     },
     cities() {
       const cities = Object.values(this.gameState.cities).map(city => {
@@ -51,17 +53,22 @@ export default {
         for (const key of this.keys) {
           if (key === "connections" || key === "events")
             output.push((city[key] || []).length);
+          else if (key === "population percent")
+             output.push(Math.round(city.population / this.firstState.cities[city.name].population * 100));
           else output.push(city[key]);
         }
         return output;
       });
-      if (this.sortedBy === 'name')
-        return cities.sort((a, b) => this.asc ? a[0].localeCompare(b[0]): b[0].localeCompare(a[0]));
-
+      if (this.sortedBy === "name")
+        return cities.sort((a, b) =>
+          this.asc ? a[0].localeCompare(b[0]) : b[0].localeCompare(a[0])
+        );
 
       const index = this.keys.indexOf(this.sortedBy);
-      if(this.sortedBy === 'population' || this.sortedBy === 'connections' || this.sortedBy === 'events')
-        return cities.sort((a, b) => this.asc ? a[index] - b[index]: b[index] - a[index])
+      if (numericalValues.has(this.sortedBy))
+        return cities.sort((a, b) =>
+          this.asc ? a[index] - b[index] : b[index] - a[index]
+        );
 
       // console.log(this.sortedBy, this.keys.indexOf(this.sortedBy))
       return cities.sort((a, b) => {
@@ -73,9 +80,10 @@ export default {
   },
   methods: {
     sort(label) {
-      if(this.sortedBy == label)
-        this.asc = !this.asc;
-      this.sortedBy = label;
+      if (this.sortedBy == label)
+        this.$store.commit('sortCitiesAscending', !this.asc)
+      else
+        this.$store.commit('sortCitiesBy', label)
     },
     firstUpper(text) {
       return text[0].toUpperCase() + text.slice(1);
@@ -88,17 +96,14 @@ export default {
     }
   }
 };
+
+const numericalValues = new Set([ "population", "connections", "events", "population percent" ]);
 </script>
 
 <style lang="scss" scoped>
 @import "./styles/colors.scss";
 
-table,
-tr,
-thead,
-tbody,
-td,
-th {
+table, tr, thead, tbody, td, th {
   border: none;
   border-width: 0;
   // border-collapse: collapse;
@@ -114,6 +119,11 @@ table {
   width: 100%;
   text-align: left;
 }
+
+tr > td, tr > th {
+  min-width: 55px;
+}
+
 th {
   background-color: $background;
   position: sticky;

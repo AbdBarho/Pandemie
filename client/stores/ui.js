@@ -1,13 +1,18 @@
 const state = {
   shouldRender: true,
   controlTab: 'Events',
-  selectedCity: 'Berlin'
+  selectedCity: 'Berlin',
+  citiesUI: {
+    sortedBy: 'events',
+    asc: false
+  }
 };
 
 const getters = {
   shouldRender: state => state.shouldRender,
   controlTab: state => state.controlTab,
-  getSelectedCity: state => state.selectedCity
+  getSelectedCity: state => state.selectedCity,
+  getCitiesUIConfig: state => state.citiesUI
 };
 
 const mutations = {
@@ -19,6 +24,8 @@ const mutations = {
   setCity: (state, city) => {
     state.selectedCity = city;
   },
+  sortCitiesBy: (state, by) => state.citiesUI.sortedBy = by,
+  sortCitiesAscending: (state, asc) => state.citiesUI.asc = asc
 };
 
 export default {

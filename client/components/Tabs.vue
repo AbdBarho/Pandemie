@@ -7,15 +7,15 @@ div
 
   AnimatedRender
     div.content
-      Actions(v-if='controlTab == "Actions"')
+      Actions(v-show='controlTab == "Actions"')
       JSONRenderer(
-        v-else-if='controlTab == "Events"' name="Events" :value='gameState.events' :onlyChildren='true'
+        v-show='controlTab == "Events"' name="Events" :value='gameState.events' :onlyChildren='true'
       )
       JSONRenderer(
-        v-else-if='controlTab == "City"' :value='gameState.cities[city]' :onlyChildren='true'
+        v-show='controlTab == "City"' :value='gameState.cities[city] || {}' :onlyChildren='true'
       )
       JSONRenderer(
-        v-else-if='controlTab == "Pathogens"' :value='pathogens' :onlyChildren='true'
+        v-show='controlTab == "Pathogens"' :value='pathogens' :onlyChildren='true'
       )
 
 
@@ -36,7 +36,7 @@ export default {
       pathogens: "getPathogens"
     }),
     tabs() {
-      return ["Actions", "Events", "Pathogens", "City"];
+      return ["Actions", "Events", "Pathogens", "City", "All"];
     }
   },
   methods: {

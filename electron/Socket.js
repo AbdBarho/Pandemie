@@ -28,22 +28,31 @@ async function waitForClient() {
 }
 
 let actionQueue = [];
+function sendAction(res) {
+  const action = actionQueue.shift();
+  console.log('sending action', action);
+  res.set({ 'content-type': 'application/json; charset=utf-8' });
+  res.json(action);
+
+}
 express.post('/', async (req, res) => {
   req.setTimeout(0);
+  console.log('round', req.body.round, 'points', req.body.points);
+  // res.set({char})
   if (actionQueue.length) {
-    const action = actionQueue.shift();
-    res.send(JSON.stringify(action));
-  } else {
-    const clientSocket = await waitForClient();
-    clientSocket.emit('newRound', req.body);
-    clientSocket.once('actions', actions => {
-      console.log('actions', actions);
-      const action = actions.shift();
-      res.send(JSON.stringify(action));
-      actionQueue = actions;
-    });
-
+    sendAction(res);
+    return;
   }
+
+  const clientSocket = await waitForClient();
+  clientSocket.emit('newRound', req.body);
+  clientSocket.once('actions', actions => {
+    actionQueue = actions;
+    sendAction(res);
+  });
+
 });
+
+
 
 module.exports = server;

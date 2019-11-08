@@ -1,43 +1,42 @@
 <template lang="pug">
 div
-  h4 Available Points:&nbsp;
-    span.value(data-type='number' data-key='points')
-      | {{available}}
-  table
-    thead
-      th(v-for='name in columnNames' :key='name') {{name}}
-    tbody
-      tr
-        td
-          select(v-model='type')
-            option(v-for='action in all' :key='action' :value='action') {{action}}
-        td
-          input(v-show='showNumRounds' type='number' min='1' max='99' v-model='numRounds')
-        td
-          span(v-show='showCity') {{ city }}
-        td
-          select(v-show='type === "closeConnection"' v-model='toCity')
-            option(v-for='neighbor in connections' :key='neighbor' :value='neighbor') {{ neighbor }}
-        td
-          select(v-show='showPathogen' v-model='pathogen')
-            option(v-for='p in pathogenNames' :key='p' :value='p') {{ p }}
+  template(v-if='!finished')
+    h4 Available Points:&nbsp;
+      span.value(data-type='number' data-key='points')
+        | {{available}}
+    table
+      thead
+        th(v-for='name in columnNames' :key='name') {{name}}
+      tbody
+        tr
+          td
+            select(v-model='type')
+              option(v-for='action in all' :key='action' :value='action') {{action}}
+          td
+            input(v-show='showNumRounds' type='number' min='1' max='99' v-model='numRounds')
+          td
+            span(v-show='showCity') {{ city }}
+          td
+            select(v-show='type === "closeConnection"' v-model='toCity')
+              option(v-for='neighbor in connections' :key='neighbor' :value='neighbor') {{ neighbor }}
+          td
+            select(v-show='showPathogen' v-model='pathogen')
+              option(v-for='p in pathogenNames' :key='p' :value='p') {{ p }}
 
-        td(:class='{error: !canAdd }') {{ cost }}
-        td
-          button(:disabled='!canAdd' :class='{deactivated: !canAdd}'  @click='add' title='add action') +
-      tr &nbsp;
-      tr
-        td(style='text-align:left') Actions:
-      tr(v-for='(action, index) in actions' :key='action.type + index')
-        td(v-for='col in ["type", "rounds", "city", "toCity", "pathogen", "cost"]')
-          template(v-if='col === "city" && !action.city') {{ action.fromCity}}
-          template(v-else) {{action[col]}}
-        td
-          button(@click='remove(index)') x
+          td(:class='{error: !canAdd }') {{ cost }}
+          td
+            button(:disabled='!canAdd' :class='{deactivated: !canAdd}'  @click='add' title='add action') +
+        tr &nbsp;
+        tr
+          td(style='text-align:left') Actions:
+        tr(v-for='(action, index) in actions' :key='action.type + index')
+          td(v-for='col in ["type", "rounds", "city", "toCity", "pathogen", "cost"]')
+            template(v-if='col === "city" && !action.city') {{ action.fromCity}}
+            template(v-else) {{action[col]}}
+          td
+            button(@click='remove(index)') x
 
-
-
-  button(@click='send') Execute actions & end round
+  button(@click='send') {{ finished ? 'New Game' : 'Execute actions & end round' }}
 
 </template>
 
@@ -54,8 +53,9 @@ export default {
   },
   methods: {
     send() {
-      if (!confirm("Are u sure?")) return;
       const actions = JSON.parse(JSON.stringify(this.actions));
+      if (actions.length === 0 && !confirm("No actions selected, continue ?"))
+      return;
       actions.forEach(a => delete a.cost);
       actions.push({ type: "endRound" })
       console.log(actions);
@@ -91,7 +91,8 @@ export default {
       city: "getSelectedCity",
       gameState: "getGameState",
       pathogens: "getPathogens",
-      actions: "getActions"
+      actions: "getActions",
+      finished: "getGameFinished"
     }),
     cost() {
       const num = parseInt(this.numRounds);
@@ -107,6 +108,8 @@ export default {
         case "deployVaccine":
           return 5;
         case "developMedication":
+          return 20;
+        case "deployMedication":
           return 10;
         default:
           return 3;
@@ -132,7 +135,7 @@ export default {
       return All;
     },
     connections() {
-      return this.gameState.cities[this.city].connections;
+      return (this.gameState.cities[this.city] || {connections: []}).connections;
     },
     pathogenNames(){
       return this.pathogens.map(p => p.name)

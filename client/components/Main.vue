@@ -2,11 +2,11 @@
 div#MainWindow
   //- h1 Pandemie
   .pageContent
-    .column
+    .column(style='width: 45%')
       div
         Overview
         Tabs
-    .column
+    .column(style='width: 55%')
       div
         AnimatedRender
           Cities
@@ -47,21 +47,22 @@ $pad: 15px;
   // margin: 0 auto;
 
   // user-select: none;
-  display: flex;
-  flex-flow: column;
+  // display: flex;
+  // flex-flow: column;
 }
 
 .pageContent {
   box-sizing: border-box;
-  height: calc(100% - #{2 * $pad});
+  height: calc(100%);
   width: 100%;
-  flex: 1;
-  display: flex;
+  // flex: 1;
+  // display: flex;
 }
 .column {
-  flex-basis: 0;
-  flex: 1;
+  // flex-basis: 0;
+  // flex: 1;
   // height: calc(100% - #{2 * $pad});
+  float: left;
   height: 100%;
   outline: 1px solid white;
   & > div {

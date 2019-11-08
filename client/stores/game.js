@@ -1,5 +1,9 @@
 const state = {
-  allStates: [],
+  first: {
+    cities: {},
+    events: []
+  },
+  totalPopulationFirst: 1,
   current: {
     cities: {},
     events: []
@@ -10,25 +14,29 @@ const state = {
 };
 
 const getters = {
+  getFirst: state => state.first,
+  getFirstTotalPopulation: state => state.totalPopulationFirst,
   getGameState: state => state.current,
-  getNumStates: state => state.allStates.length,
+  getRound: state => state.current.round,
   getPathogens: state => state.pathogens,
-  getActions: state => state.actions
+  getActions: state => state.actions,
+  getGameFinished: state => state.finished
 };
 
 const mutations = {
   addNewRound: (state, roundState) => {
-    if (roundState.outcome !== 'pending')
-      state.finished = true;
-    if (roundState.round === 1)
-      while (state.allStates.length)
-        state.allStates.pop();
+    state.finished = roundState.outcome !== 'pending';
 
-    const pathogens = (roundState.events || [])
+    if (roundState.round === 1) {
+      state.first = roundState;
+      state.totalPopulationFirst = Object.values(roundState.cities)
+        .reduce((acc, cur) => acc + cur.population, 0);
+    }
+
+    state.pathogens = (roundState.events || [])
       .filter(e => e.type === 'pathogenEncountered')
       .map(e => e.pathogen);
-    state.pathogens = pathogens;
-    state.allStates.push(roundState);
+
     state.current = roundState;
   },
   addAction: (state, action) => state.actions.push(action),
@@ -37,5 +45,7 @@ const mutations = {
 };
 
 export default {
-  state, getters, mutations
+  state,
+  getters,
+  mutations
 };
