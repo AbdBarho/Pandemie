@@ -10,6 +10,10 @@ const state = {
   },
   actions: [],
   pathogens: [],
+  vaccinesInDevelopment: [],
+  availableVaccines: [],
+  medicationsInDevelopment: [],
+  availableMedications: [],
   finished: false
 };
 
@@ -20,7 +24,11 @@ const getters = {
   getRound: state => state.current.round,
   getPathogens: state => state.pathogens,
   getActions: state => state.actions,
-  getGameFinished: state => state.finished
+  getGameFinished: state => state.finished,
+  getVaccinesInDevelopment: state => state.vaccinesInDevelopment,
+  getAvailableVaccines: state => state.availableVaccines,
+  getMedicationsInDevelopment: state => state.medicationsInDevelopment,
+  getAvailableMedications: state => state.availableMedications,
 };
 
 const mutations = {
@@ -32,10 +40,22 @@ const mutations = {
       state.totalPopulationFirst = Object.values(roundState.cities)
         .reduce((acc, cur) => acc + cur.population, 0);
     }
-
-    state.pathogens = (roundState.events || [])
-      .filter(e => e.type === 'pathogenEncountered')
+    const events = (roundState.events || []);
+    state.pathogens = events.filter(e => e.type === 'pathogenEncountered')
       .map(e => e.pathogen);
+
+    state.vaccinesInDevelopment = events.filter(e => e.type === 'vaccineInDevelopment')
+      .map(e => e.pathogen.name);
+
+    state.availableVaccines = events.filter(e => e.type === 'vaccineAvailable')
+      .map(e => e.pathogen.name);
+
+    state.medicationsInDevelopment = events.filter(e => e.type === 'medicationInDevelopment')
+      .map(e => e.pathogen.name);
+
+    state.availableMedications = events.filter(e => e.type === 'medicationAvailable')
+      .map(e => e.pathogen.name);
+
 
     state.current = roundState;
   },

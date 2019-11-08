@@ -1,9 +1,11 @@
 <template lang="pug">
 div
   template(v-if='!finished')
+    ActionStats
     h4 Available Points:&nbsp;
       span.value(data-type='number' data-key='points')
         | {{available}}
+        
     table
       thead
         th(v-for='name in columnNames' :key='name') {{name}}
@@ -11,7 +13,9 @@ div
         tr
           td
             select(v-model='type')
-              option(v-for='action in all' :key='action' :value='action') {{action}}
+              optgroup(v-for='(actions, label, index) in all' :key='label + index' :label='label')
+                option(v-for='action in actions' :key='action + index' :value='action') {{action}}
+
           td
             input(v-show='showNumRounds' type='number' min='1' max='99' v-model='numRounds')
           td
@@ -21,6 +25,7 @@ div
               option(v-for='neighbor in connections' :key='neighbor' :value='neighbor') {{ neighbor }}
           td
             select(v-show='showPathogen' v-model='pathogen')
+
               option(v-for='p in pathogenNames' :key='p' :value='p') {{ p }}
 
           td(:class='{error: !canAdd }') {{ cost }}
@@ -36,13 +41,16 @@ div
           td
             button(@click='remove(index)') x
 
-  button(@click='send') {{ finished ? 'New Game' : 'Execute actions & end round' }}
+  button.send(@click='send') {{ finished ? 'New Game' : 'Execute actions & end round' }}
 
 </template>
 
 <script>
 import { mapGetters } from "vuex";
+import ActionStats from "./ActionStats";
+
 export default {
+  components: {ActionStats},
   data() {
     return {
       type: "putUnderQuarantine",
@@ -55,13 +63,12 @@ export default {
     send() {
       const actions = JSON.parse(JSON.stringify(this.actions));
       if (actions.length === 0 && !confirm("No actions selected, continue ?"))
-      return;
+        return;
       actions.forEach(a => delete a.cost);
-      actions.push({ type: "endRound" })
+      actions.push({ type: "endRound" });
       console.log(actions);
-      this.$store.commit('clearActions');
+      this.$store.commit("clearActions");
       this.$socket.emit("actions", actions);
-      // this.$socket.emit("actions", {type: "endRound"});
     },
     add() {
       if (!this.canAdd) return;
@@ -88,11 +95,10 @@ export default {
   },
   computed: {
     ...mapGetters({
-      city: "getSelectedCity",
-      gameState: "getGameState",
-      pathogens: "getPathogens",
-      actions: "getActions",
-      finished: "getGameFinished"
+      city: "getSelectedCity", gameState: "getGameState", pathogens: "getPathogens",
+      actions: "getActions", finished: "getGameFinished", vacInDev: "getVaccinesInDevelopment",
+      avVac: "getAvailableVaccines", medInDev: "getMedicationsInDevelopment",
+      avMed: "getAvailableMedications"
     }),
     cost() {
       const num = parseInt(this.numRounds);
@@ -126,8 +132,7 @@ export default {
         this.cost <= this.available &&
         (this.type !== "closeConnection" ||
           this.connections.indexOf(this.toCity) > -1) &&
-        (
-          !SHOW_PATHOGEN.has(this.type) ||
+        (!SHOW_PATHOGEN.has(this.type) ||
           this.pathogenNames.indexOf(this.pathogen) > -1)
       );
     },
@@ -135,10 +140,23 @@ export default {
       return All;
     },
     connections() {
-      return (this.gameState.cities[this.city] || {connections: []}).connections;
+      return (this.gameState.cities[this.city] || { connections: [] }).connections;
     },
-    pathogenNames(){
-      return this.pathogens.map(p => p.name)
+    pathogenNames() {
+      if(this.type === 'developMedication')
+        return this.pathogens.map(p => p.name).filter(name =>
+          !this.avMed.includes(name) && !this.medInDev.includes(name)
+        );
+      else if (this.type === 'developVaccine')
+        return this.pathogens.map(p => p.name).filter(name =>
+          !this.avVac.includes(name) && !this.vacInDev.includes(name)
+        );
+      else if (this.type === 'deployMedication')
+        return this.avMed;
+      else if (this.type === 'deployVaccine')
+        return this.avVac;
+      else
+        return [];
     },
     showCity() {
       return SHOW_CITY.has(this.type);
@@ -155,52 +173,33 @@ export default {
   }
 };
 const COL_NAMES = [
-  "Action Type",
-  "Rounds",
-  "City",
-  "To City",
-  "Pathogen",
-  "Cost",
-  ""
+  "Action Type", "Rounds", "City", "To City", "Pathogen", "Cost", ""
 ];
 
 const SHOW_CITY = new Set([
-  "putUnderQuarantine",
-  "closeAirport",
-  "closeConnection",
-  "deployVaccine",
-  "deployMedication",
-  "exertInfluence",
-  "callElections",
-  "applyHygienicMeasures",
-  "launchCampaign"
+  "putUnderQuarantine", "closeAirport", "closeConnection",
+  "deployVaccine", "deployMedication", "exertInfluence",
+  "callElections", "applyHygienicMeasures", "launchCampaign"
 ]);
 const SHOW_NUM_ROUNDS = new Set([
-  "putUnderQuarantine",
-  "closeAirport",
-  "closeConnection"
+  "putUnderQuarantine", "closeAirport", "closeConnection"
 ]);
 const SHOW_PATHOGEN = new Set([
-  "deployMedication",
-  "developMedication",
-  "deployVaccine",
-  "developVaccine"
+  "deployMedication", "developMedication", "deployVaccine", "developVaccine"
 ]);
-const All = Array.from(
-  new Set([...SHOW_CITY, ...SHOW_PATHOGEN, ...SHOW_NUM_ROUNDS])
-);
+const All = {
+  Protect: ["putUnderQuarantine", "closeAirport", "closeConnection"],
+  Influence: [ "exertInfluence", "callElections", "applyHygienicMeasures", "launchCampaign" ],
+  Medication: ["developMedication", "deployMedication"],
+  Vaccine: ["developVaccine", "deployVaccine"],
+};
 </script>
 
 <style lang='scss' scoped>
 @import "./styles/colors.scss";
 @import "./styles/variables.scss";
 
-table,
-tr,
-thead,
-tbody,
-td,
-th {
+table, tr, thead, tbody, td, th {
   border-spacing: 0;
 }
 table {
@@ -208,7 +207,8 @@ table {
   width: 100%;
   margin-bottom: 20px;
 }
-th, td {
+th,
+td {
   width: calc(100% / 6);
 }
 
@@ -221,7 +221,6 @@ tr:hover {
 }
 tr:first-of-type:hover {
   background-color: inherit;
-
 }
 
 button,
@@ -250,5 +249,14 @@ button {
 }
 .error {
   color: $red;
+}
+.send {
+  padding: 5px;
+}
+.title {
+  margin: 10px 0px;
+}
+.pad {
+  padding-left: 10px;
 }
 </style>

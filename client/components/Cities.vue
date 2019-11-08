@@ -32,7 +32,8 @@ export default {
       gameState: "getGameState",
       firstState: "getFirst",
       selectedCity: "getSelectedCity",
-      config: "getCitiesUIConfig"
+      config: "getCitiesUIConfig",
+      pathogens: "getPathogens"
     }),
     sortedBy(){
       return this.config.sortedBy;
@@ -40,31 +41,48 @@ export default {
     asc(){
       return this.config.asc
     },
+    pathogenNames(){
+      return this.pathogens.map(p => p.name);
+    },
     keys() {
       return [ "name", "population percent", "population", "economy", "government", "hygiene", "awareness",
-        "connections", "events" ];
+        "connections", "events" ].concat(this.pathogenNames);
     },
     labels() {
-      return [ "Name", "Per.", "Pop.", "Eco.", "Gov.", "Hyg.", "Awa.", "Con.", "Ev." ];
+      return [ "Name", "Per.", "Pop.", "Eco.", "Gov.", "Hyg.", "Awa.", "Con.", "Ev." ]
+        .concat(this.pathogenNames.map(n => n.slice(0, 4) ));
     },
     cities() {
       const cities = Object.values(this.gameState.cities).map(city => {
         const output = [];
         for (const key of this.keys) {
-          if (key === "connections" || key === "events")
+          if (this.pathogenNames.includes(key)){
+            const hasPathogen = (city.events || [])
+              .some(e => e.type ==='outbreak' && e.pathogen.name === key);
+            output.push(hasPathogen ? '\u25CF' : '')
+          } else if (key === "connections" || key === "events"){
             output.push((city[key] || []).length);
-          else if (key === "population percent")
-             output.push(Math.round(city.population / this.firstState.cities[city.name].population * 100));
-          else output.push(city[key]);
+          } else if (key === "population percent") {
+            output.push(
+              Math.round(city.population / this.firstState.cities[city.name].population * 100)
+            );
+          } else {
+            output.push(city[key]);
+          }
         }
         return output;
       });
-      if (this.sortedBy === "name")
+      const index = this.keys.indexOf(this.sortedBy);
+      if (index === -1) {
+          this.$store.commit('sortCitiesBy', this.keys[0]);
+          return cities;
+      }
+
+      if (this.sortedBy === "name" || this.pathogenNames.includes(this.sortedBy))
         return cities.sort((a, b) =>
-          this.asc ? a[0].localeCompare(b[0]) : b[0].localeCompare(a[0])
+          this.asc ? a[index].localeCompare(b[index]) : b[index].localeCompare(a[index])
         );
 
-      const index = this.keys.indexOf(this.sortedBy);
       if (numericalValues.has(this.sortedBy))
         return cities.sort((a, b) =>
           this.asc ? a[index] - b[index] : b[index] - a[index]

@@ -36,7 +36,7 @@ export default {
       pathogens: "getPathogens"
     }),
     tabs() {
-      return ["Actions", "Events", "Pathogens", "City", "All"];
+      return ["Actions", "Events", "Pathogens", "City"];
     }
   },
   methods: {
