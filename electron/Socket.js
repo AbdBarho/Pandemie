@@ -3,6 +3,8 @@ const path = require('path');
 const express = Express();
 const server = require('http').Server(express);
 const io = require('socket.io')(server);
+const fs = require('fs');
+const mkdirp = require('mkdirp');
 const { sleep } = require('./Utils');
 
 express.use(Express.json({ limit: '100mb' }));
@@ -35,17 +37,33 @@ function sendAction(res) {
   res.json(action);
 
 }
+
+const GAMES_DATA_FOLDER = path.join(__dirname, '../', 'collected_data', 'games');
+mkdirp.sync(GAMES_DATA_FOLDER);
+
+
+let currentGameFolder = '';
 express.post('/', async (req, res) => {
   req.setTimeout(0);
-  console.log('round', req.body.round, 'points', req.body.points);
-  // res.set({char})
+  const gameState = req.body;
+  console.log('round', gameState.round, 'points', gameState.points);
   if (actionQueue.length) {
     sendAction(res);
     return;
   }
 
+  if (gameState.round === 1) {
+    currentGameFolder = path.join(GAMES_DATA_FOLDER, Date.now().toString());
+    mkdirp.sync(currentGameFolder);
+  }
+
+  fs.writeFileSync(
+    path.join(currentGameFolder, gameState.round + '.json'),
+    JSON.stringify(gameState, null, 2)
+  );
+
   const clientSocket = await waitForClient();
-  clientSocket.emit('newRound', req.body);
+  clientSocket.emit('newRound', gameState);
   clientSocket.once('actions', actions => {
     actionQueue = actions;
     sendAction(res);
