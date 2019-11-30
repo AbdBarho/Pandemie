@@ -49,10 +49,8 @@ export default {
         'connections', 'events' ];
       for ( let idx in this.pathogenNames ){
         let pathName = this.pathogenNames[idx];
-        console.log( pathName );
         ret = ret.concat( pathName , 'Medicinedeployed'.concat(pathName.slice(0,2)) , 'Vaccinedeployed'.concat(pathName.slice(0,2)) );
       }
-      console.log( ret )
       return ret;
     },
     labels() {
@@ -64,7 +62,6 @@ export default {
           'vd' + pathName.slice(0, 2)
         );
       }
-      console.log( ret )
       return ret;
     },
     cities() {
