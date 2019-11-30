@@ -16,53 +16,72 @@ table
 
 
 <script>
-import { mapGetters } from "vuex";
+import { mapGetters } from 'vuex';
 
 const GRADE_TO_NUMBER = {
-  "--": 0,
-  "-": 1,
-  o: 2,
-  "+": 3,
-  "++": 4
+  '--': 0,
+  '-': 1,
+  'o': 2,
+  '+': 3,
+  '++': 4
 };
 export default {
-  name: "Cities",
+  name: 'Cities',
   computed: {
     ...mapGetters({
-      gameState: "getGameState",
-      firstState: "getFirst",
-      selectedCity: "getSelectedCity",
-      config: "getCitiesUIConfig",
-      pathogens: "getPathogens"
+      gameState: 'getGameState',
+      firstState: 'getFirst',
+      selectedCity: 'getSelectedCity',
+      config: 'getCitiesUIConfig',
+      pathogens: 'getPathogens'
     }),
     sortedBy(){
       return this.config.sortedBy;
     },
     asc(){
-      return this.config.asc
+      return this.config.asc;
     },
     pathogenNames(){
       return this.pathogens.map(p => p.name);
     },
     keys() {
-      return [ "name", "population percent", "population", "economy", "government", "hygiene", "awareness",
-        "connections", "events" ].concat(this.pathogenNames);
+      let ret = [ 'name', 'population percent', 'population', 'economy', 'government', 'hygiene', 'awareness',
+        'connections', 'events' ];
+      for ( let idx in this.pathogenNames ){
+        let pathName = this.pathogenNames[idx];
+        console.log( pathName );
+        ret = ret.concat( pathName , 'Medicinedeployed'.concat(pathName.slice(0,2)) , 'Vaccinedeployed'.concat(pathName.slice(0,2)) );
+      }
+      console.log( ret )
+      return ret;
     },
     labels() {
-      return [ "Name", "Per.", "Pop.", "Eco.", "Gov.", "Hyg.", "Awa.", "Con.", "Ev." ]
-        .concat(this.pathogenNames.map(n => n.slice(0, 4) ));
+      let ret = [ 'Name', 'Per.', 'Pop.', 'Eco.', 'Gov.', 'Hyg.', 'Awa.', 'Con.', 'Ev.' ];
+      for ( let idx in this.pathogenNames ) {
+        let pathName = this.pathogenNames[idx];
+        ret = ret.concat( pathName.slice(0, 4),
+          'md' + pathName.slice(0, 2),
+          'vd' + pathName.slice(0, 2)
+        );
+      }
+      console.log( ret )
+      return ret;
     },
     cities() {
       const cities = Object.values(this.gameState.cities).map(city => {
         const output = [];
         for (const key of this.keys) {
-          if (this.pathogenNames.includes(key)){
+          if (this.pathogenNames.includes(key)) {
             const hasPathogen = (city.events || [])
-              .some(e => e.type ==='outbreak' && e.pathogen.name === key);
-            output.push(hasPathogen ? '\u25CF' : '')
-          } else if (key === "connections" || key === "events"){
+              .some(e => e.type === 'outbreak' && e.pathogen.name === key);
+            const hasMedDeployed = (city.events || [] ).some( e => e.type ==='medicationDeployed');
+            const hasVacDeployed = (city.events || [] ).some( e => e.type ==='vaccineDeployed');
+            output.push(hasPathogen ? '\u25CF' : '');
+            output.push(hasMedDeployed ? '\u25CF' : '');
+            output.push(hasVacDeployed ? '\u25CF' : '');
+          } else if (key === 'connections' || key === 'events') {
             output.push((city[key] || []).length);
-          } else if (key === "population percent") {
+          } else if (key === 'population percent') {
             output.push(
               Math.round(city.population / this.firstState.cities[city.name].population * 100)
             );
@@ -74,11 +93,11 @@ export default {
       });
       const index = this.keys.indexOf(this.sortedBy);
       if (index === -1) {
-          this.$store.commit('sortCitiesBy', this.keys[0]);
-          return cities;
+        this.$store.commit('sortCitiesBy', this.keys[0]);
+        return cities;
       }
 
-      if (this.sortedBy === "name" || this.pathogenNames.includes(this.sortedBy))
+      if (this.sortedBy === 'name' || this.pathogenNames.includes(this.sortedBy))
         return cities.sort((a, b) =>
           this.asc ? a[index].localeCompare(b[index]) : b[index].localeCompare(a[index])
         );
@@ -98,24 +117,24 @@ export default {
   },
   methods: {
     sort(label) {
-      if (this.sortedBy == label)
-        this.$store.commit('sortCitiesAscending', !this.asc)
+      if (this.sortedBy === label)
+        this.$store.commit('sortCitiesAscending', !this.asc);
       else
-        this.$store.commit('sortCitiesBy', label)
+        this.$store.commit('sortCitiesBy', label);
     },
     firstUpper(text) {
       return text[0].toUpperCase() + text.slice(1);
     },
     selectCity(city) {
-      this.$store.commit("setCity", city);
+      this.$store.commit('setCity', city);
     },
     goToCityTab() {
-      this.$store.commit("setControlTab", "City");
+      this.$store.commit('setControlTab', 'City');
     }
   }
 };
 
-const numericalValues = new Set([ "population", "connections", "events", "population percent" ]);
+const numericalValues = new Set([ 'population', 'connections', 'events', 'population percent' ]);
 </script>
 
 <style lang="scss" scoped>
@@ -133,7 +152,7 @@ table, tr, thead, tbody, td, th {
 
 $pad: 15px;
 table {
-  padding: 0px $pad $pad $pad;
+  padding: 0 $pad $pad $pad;
   width: 100%;
   text-align: left;
 }
@@ -145,7 +164,7 @@ tr > td, tr > th {
 th {
   background-color: $background;
   position: sticky;
-  top: 0px;
+  top: 0;
 }
 
 tr:nth-child(even) {
