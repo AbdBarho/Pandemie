@@ -2,11 +2,11 @@
 div#MainWindow
   //- h1 Pandemie
   .pageContent
-    .column(style='width: 45%')
+    .column(style='width: 30%')
       div
         Overview
         Tabs
-    .column(style='width: 55%')
+    .column(style='width: 70%')
       div
         AnimatedRender
           Cities

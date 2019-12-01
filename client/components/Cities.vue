@@ -16,72 +16,70 @@ table
 
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters } from "vuex";
 
-const GRADE_TO_NUMBER = {
-  '--': 0,
-  '-': 1,
-  'o': 2,
-  '+': 3,
-  '++': 4
-};
+const GRADE_TO_NUMBER = { "--": 0, "-": 1, o: 2, "+": 3, "++": 4 };
+
 export default {
-  name: 'Cities',
+  name: "Cities",
   computed: {
     ...mapGetters({
-      gameState: 'getGameState',
-      firstState: 'getFirst',
-      selectedCity: 'getSelectedCity',
-      config: 'getCitiesUIConfig',
-      pathogens: 'getPathogens'
+      gameState: "getGameState",
+      firstState: "getFirst",
+      selectedCity: "getSelectedCity",
+      config: "getCitiesUIConfig",
+      pathogens: "getPathogens"
     }),
-    sortedBy(){
+    sortedBy() {
       return this.config.sortedBy;
     },
-    asc(){
+    asc() {
       return this.config.asc;
     },
-    pathogenNames(){
+    pathogenNames() {
       return this.pathogens.map(p => p.name);
     },
     keys() {
-      let ret = [ 'name', 'population percent', 'population', 'economy', 'government', 'hygiene', 'awareness',
-        'connections', 'events' ];
-      for ( let idx in this.pathogenNames ){
-        let pathName = this.pathogenNames[idx];
-        ret = ret.concat( pathName , 'Medicinedeployed'.concat(pathName.slice(0,2)) , 'Vaccinedeployed'.concat(pathName.slice(0,2)) );
+      const ret = [ "name", "population percent", "population", "economy", "government", "hygiene",
+        "awareness", "connections", "events" ];
+      for (const pathName of this.pathogenNames) {
+        const shortName = pathName.slice(0, 3);
+        ret.push( pathName, "Medicinedeployed" + shortName, "Vaccinedeployed" + shortName );
       }
       return ret;
     },
     labels() {
-      let ret = [ 'Name', 'Per.', 'Pop.', 'Eco.', 'Gov.', 'Hyg.', 'Awa.', 'Con.', 'Ev.' ];
-      for ( let idx in this.pathogenNames ) {
-        let pathName = this.pathogenNames[idx];
-        ret = ret.concat( pathName.slice(0, 4),
-          'md' + pathName.slice(0, 2),
-          'vd' + pathName.slice(0, 2)
-        );
+      const ret = [ "Name", "Per.", "Pop.", "Eco.", "Gov.", "Hyg.", "Awa.", "Con.", "Ev." ];
+      for (const pathName of this.pathogenNames) {
+        const shortName = pathName.slice(0, 3);
+        ret.push(pathName.slice(0, 4), "md" + shortName, "vd" + shortName);
       }
       return ret;
     },
     cities() {
       const cities = Object.values(this.gameState.cities).map(city => {
         const output = [];
-        for (const key of this.keys) {
+        for(let i = 0; i < this.keys.length; i++){
+          const key = this.keys[i];
           if (this.pathogenNames.includes(key)) {
-            const hasPathogen = (city.events || [])
-              .some(e => e.type === 'outbreak' && e.pathogen.name === key);
-            const hasMedDeployed = (city.events || [] ).some( e => e.type ==='medicationDeployed');
-            const hasVacDeployed = (city.events || [] ).some( e => e.type ==='vaccineDeployed');
-            output.push(hasPathogen ? '\u25CF' : '');
-            output.push(hasMedDeployed ? '\u25CF' : '');
-            output.push(hasVacDeployed ? '\u25CF' : '');
-          } else if (key === 'connections' || key === 'events') {
+            const events = city.events || [];
+            const hasPathogen = events.some(e => e.type === "outbreak" && e.pathogen.name === key);
+
+            // muss hier auch überprüfen ob das Medikament doch für den selben Pathogen ist.
+            const hasMedDeployed = events.some(e => e.type === "medicationDeployed");
+            // genau das selbe hier
+            const hasVacDeployed = events.some(e => e.type === "vaccineDeployed");
+
+
+            output.push(hasPathogen ? "\u25CF" : "");
+            output.push(hasMedDeployed ? "\u25CF" : "");
+            output.push(hasVacDeployed ? "\u25CF" : "");
+            i+=2;
+          } else if (key === "connections" || key === "events") {
             output.push((city[key] || []).length);
-          } else if (key === 'population percent') {
-            output.push(
-              Math.round(city.population / this.firstState.cities[city.name].population * 100)
-            );
+          } else if (key === "population percent") {
+            const percent = (city.population / this.firstState.cities[city.name].population);
+            output.push(  Math.round(percent * 100));
           } else {
             output.push(city[key]);
           }
@@ -90,13 +88,18 @@ export default {
       });
       const index = this.keys.indexOf(this.sortedBy);
       if (index === -1) {
-        this.$store.commit('sortCitiesBy', this.keys[0]);
+        this.$store.commit("sortCitiesBy", this.keys[0]);
         return cities;
       }
 
-      if (this.sortedBy === 'name' || this.pathogenNames.includes(this.sortedBy))
+      if (
+        this.sortedBy === "name" ||
+        this.pathogenNames.includes(this.sortedBy)
+      )
         return cities.sort((a, b) =>
-          this.asc ? a[index].localeCompare(b[index]) : b[index].localeCompare(a[index])
+          this.asc
+            ? a[index].localeCompare(b[index])
+            : b[index].localeCompare(a[index])
         );
 
       if (numericalValues.has(this.sortedBy))
@@ -115,23 +118,23 @@ export default {
   methods: {
     sort(label) {
       if (this.sortedBy === label)
-        this.$store.commit('sortCitiesAscending', !this.asc);
+        this.$store.commit("sortCitiesAscending", !this.asc);
       else
-        this.$store.commit('sortCitiesBy', label);
+        this.$store.commit("sortCitiesBy", label);
     },
     firstUpper(text) {
       return text[0].toUpperCase() + text.slice(1);
     },
     selectCity(city) {
-      this.$store.commit('setCity', city);
+      this.$store.commit("setCity", city);
     },
     goToCityTab() {
-      this.$store.commit('setControlTab', 'City');
+      this.$store.commit("setControlTab", "City");
     }
   }
 };
 
-const numericalValues = new Set([ 'population', 'connections', 'events', 'population percent' ]);
+const numericalValues = new Set([ "population", "connections", "events", "population percent" ]);
 </script>
 
 <style lang="scss" scoped>
@@ -155,7 +158,7 @@ table {
 }
 
 tr > td, tr > th {
-  min-width: 55px;
+  // min-width: 55px;
 }
 
 th {
