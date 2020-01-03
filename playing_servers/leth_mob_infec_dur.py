@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 
 from bottle import post, request, run, BaseRequest
+import os
+
+filepath='../collected_data/{__file__.split(".")[0]}.csv'
 
 pathogenPriority=['lethality','mobility','infectivity','duration']
 pathogenPriorityExponent=[1,1,1,1]
 cityPriority=['population','connections','economy','government','hygiene','awareness' """,'events','longitude','latitude'"""]
 symbolValues ={'++': 4,'+': 3,'o': 2,'-':1, '--':0}
 
-ROUNDCHOSEN = True
+DEBUG = False
+ROUNDCHOSEN = False
 PREVELANECETHRESHOLD = 0.1
 # actions in a round 
 def deployMedication( pathogen , city ):
@@ -161,9 +165,13 @@ def vaccineDeployed( pathogen , city , rounds ):
 @post("/")
 def index():
 	game = request.json
-	print(f'round: {game["round"]}, outcome: {game["outcome"]}')
-	if 'error' in game.keys() :	
-		print ( 'error : ' , game['error'] ) 
+	if ( game['outcome'] != 'pending' ):	
+#		print(f'round: {game["round"]}, outcome: {game["outcome"]}')
+		with open( '../collected_data/leth_mob_infec_dur.csv' , 'a' ) as f :
+			f.write( f'{game["round"]},{game["outcome"]}' )
+
+#	if 'error' in game.keys() :	
+#		print ( 'error : ' , game['error'] ) 
 
 #	if 'events' in game.keys() :
 #		for ev in game['events'] :
@@ -195,14 +203,15 @@ def index():
 
 
 				# quarantine the dangerous ones 
-				print ( 'gewählte Stadt' , chosenCity )
-				print ( 'gewählter Keim' ,chosenPathogen ) 
-				print ( 'ist es gefährlich',  pathogenIsDangerous( chosenPathogen ) )	
+				if DEBUG :
+					print ( 'gewählte Stadt' , chosenCity )
+					print ( 'gewählter Keim' ,chosenPathogen ) 
+					print ( 'ist es gefährlich',  pathogenIsDangerous( chosenPathogen ) )	
 				if ( pathogenIsDangerous( chosenPathogen ) and amountOfPathogensList[chosenPathogen['name']] == 1 ) :
 					if symbolValues[chosenPathogen['mobility']] > 3 :
 						#if currentPoints < 40 :
 						#	return endRound() 
-						print( 'checking if quarantine already active : ' , alreadyUnderQuarantine( chosenCity ) )
+					#	print( 'checking if quarantine already active : ' , alreadyUnderQuarantine( chosenCity ) )
 						# only do a quarantine, if none is active and enough points are available 
 						if (not alreadyUnderQuarantine( chosenCity )) and currentPoints >= 40 :
 							return putUnderQuarantine( chosenCity , min( ( currentPoints-20)//10 , 5 )  )
@@ -217,7 +226,7 @@ def index():
 					else :	
 						#if currentPoints < 30 :
 						#	return endRound() 
-						print( 'checking if quarantine already active : ' , alreadyAirportClosed( chosenCity ) )
+						#print( 'checking if quarantine already active : ' , alreadyAirportClosed( chosenCity ) )
 						# only do a quarantine, if none is active and enough points are available 
 						if (not alreadyAirportClosed( chosenCity )) and currentPoints >= 30 :
 							return closeAirport( chosenCity , min( ( currentPoints-15)//5 , 5 )  )
@@ -230,7 +239,7 @@ def index():
 							return developMedication( chosenPathogen )
 							
 				if ( pathogenIsDangerous( chosenPathogen ) and amountOfPathogensList[chosenPathogen['name']] > 1 ) :
-					print( 'pathogen chosen : ' , chosenPathogen , '\nis Dangerous : ' , pathogenIsDangerous( chosenPathogen) , '\npathogenList : ' , amountOfPathogensList ) 
+					#print( 'pathogen chosen : ' , chosenPathogen , '\nis Dangerous : ' , pathogenIsDangerous( chosenPathogen) , '\npathogenList : ' , amountOfPathogensList ) 
 					if symbolValues[ chosenPathogen['infectivity']]  > symbolValues[chosenPathogen['duration'] ] :
 						if not medicationAvailable( chosenPathogen , game ) and not medicationInDevelopment( chosenPathogen , game ) and currentPoints > 20 :
 							return developMedication( chosenPathogen ) 
@@ -267,7 +276,7 @@ def index():
 								if vaccineDeployed( chosenPathogen , chosenCity , game['round'] ) :	
 									return deployVaccine( chosenPathogen , chosenCity ) 
 							return endRound() 
-		print( 'nothing has been done -> no loop, points : ', currentPoints )
+		#print( 'nothing has been done -> no loop, points : ', currentPoints )
 		return endRound()
 
 BaseRequest.MEMFILE_MAX = 10 * 1024 * 1024
