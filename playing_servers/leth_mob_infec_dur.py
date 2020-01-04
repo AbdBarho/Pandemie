@@ -168,7 +168,7 @@ def index():
 	if ( game['outcome'] != 'pending' ):	
 #		print(f'round: {game["round"]}, outcome: {game["outcome"]}')
 		with open( '../collected_data/leth_mob_infec_dur.csv' , 'a' ) as f :
-			f.write( f'{game["round"]},{game["outcome"]}' )
+			f.write( f'{game["round"]},{game["outcome"]}\n' )
 
 #	if 'error' in game.keys() :	
 #		print ( 'error : ' , game['error'] ) 
