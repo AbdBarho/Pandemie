@@ -1,0 +1,110 @@
+{
+  "N5-10": {
+    "infectivity": "+",
+    "mobility": "++",
+    "duration": "o",
+    "lethality": "+"
+  },
+  "Xenomonocythemia": {
+    "infectivity": "-",
+    "mobility": "--",
+    "duration": "o",
+    "lethality": "++"
+  },
+  "Neurodermantotitis": {
+    "infectivity": "+",
+    "mobility": "o",
+    "duration": "o",
+    "lethality": "o"
+  },
+  "Shanty": {
+    "infectivity": "+",
+    "mobility": "-",
+    "duration": "o",
+    "lethality": "-"
+  },
+  "Saccharomyces cerevisiae mutans": {
+    "infectivity": "o",
+    "mobility": "o",
+    "duration": "o",
+    "lethality": "-"
+  },
+  "Admiral Trips": {
+    "infectivity": "++",
+    "mobility": "+",
+    "duration": "-",
+    "lethality": "++"
+  },
+  "Plorps": {
+    "infectivity": "o",
+    "mobility": "o",
+    "duration": "+",
+    "lethality": "-"
+  },
+  "Coccus innocuus": {
+    "infectivity": "o",
+    "mobility": "--",
+    "duration": "o",
+    "lethality": "--"
+  },
+  "Hexapox": {
+    "infectivity": "o",
+    "mobility": "+",
+    "duration": "o",
+    "lethality": "o"
+  },
+  "Moricillus ☠": {
+    "infectivity": "-",
+    "mobility": "o",
+    "duration": "-",
+    "lethality": "+"
+  },
+  "Phagum vidiianum": {
+    "infectivity": "o",
+    "mobility": "o",
+    "duration": "+",
+    "lethality": "+"
+  },
+  "Azmodeus": {
+    "infectivity": "o",
+    "mobility": "o",
+    "duration": "o",
+    "lethality": "o"
+  },
+  "Endoictus": {
+    "infectivity": "-",
+    "mobility": "o",
+    "duration": "+",
+    "lethality": "--"
+  },
+  "Influenza iutiubensis": {
+    "infectivity": "++",
+    "mobility": "++",
+    "duration": "--",
+    "lethality": "--"
+  },
+  "Rhinonitis": {
+    "infectivity": "o",
+    "mobility": "-",
+    "duration": "-",
+    "lethality": "--"
+  },
+  "Procrastinalgia": {
+    "infectivity": "-",
+    "mobility": "--",
+    "duration": "++",
+    "lethality": "--"
+  },
+  "Methanobrevibacter colferi": {
+    "infectivity": "o",
+    "mobility": "++",
+    "duration": "--",
+    "lethality": "-"
+  },
+  "Φthisis": {
+    "infectivity": "o",
+    "mobility": "o",
+    "duration": "o",
+    "lethality": "o"
+  }
+}
