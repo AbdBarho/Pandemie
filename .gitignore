@@ -61,3 +61,6 @@ typings/
 .next
 client/dist/bundle.js.map
 collected_data/games/*
+
+# remove intellij config folder 
+./idea
