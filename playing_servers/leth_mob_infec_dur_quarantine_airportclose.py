@@ -2,7 +2,7 @@
 
 from bottle import post, request, run, BaseRequest
 import os
-import sys , getopt 
+import sys , getopt
 
 filepath='../collected_data/{__file__.split(".")[0]}.csv'
 
@@ -79,6 +79,9 @@ def preprocessInput( data ) :
 	pathogenListPrioritySorted = sortPathogenList( pathogenList ) 
 	return pathogenListPrioritySorted, amountOfPathogensList , cityList 
 	
+	#for key in data :
+	#	print( key )  # round, outcome, points, cities, events, error
+
 # sort pathogens by priority list 
 def sortPathogenList( arr ) :
 	for attr in pathogenPriority[::-1] :
@@ -92,7 +95,7 @@ def pathogenIsDangerous( pathogen ):
 			return False
 	return True
 
-# picking a pathogen from sortet pathogen list 
+#
 def pickPathogen( pathogenArr , amountOfPathogensList ) : 
 	# check if current Pathogen is dangerous 
 	if len ( amountOfPathogensList ) > 1 :
@@ -163,13 +166,13 @@ def vaccineDeployed( pathogen , city , rounds ):
 @post("/")
 def index():
 	game = request.json
-
-	if DEBUG :	
+	
+	if DEBUG :
+		print ( f'{game["round"]} {game["outcome"]}' )
 		if 'error' in game.keys() :
 			for ev in game['error']:
 				print ( ev ) 
 	
-
 	currentPoints = int( game['points'] ) 
 	# not enough points 
 	if ( game["points"] < 3 ):
@@ -179,6 +182,7 @@ def index():
 	pathogenList, amountOfPathogensList, cityList = preprocessInput( game )	
 	if len( pathogenList ) != 0 :
 		
+
 		# chose most important pathogen  
 		chosenPathogen = pickPathogen( pathogenList , amountOfPathogensList )
 
@@ -186,7 +190,7 @@ def index():
 		# init chosenCity 
 		chosenCity = cityList[0] 
 
-		# find chosen city with chosen pathogen in it
+		# find chosen City with chosen pathogen in it
 		for city in cityList :
 			if 'events' in city.keys() :
 				for event in city['events'] :	
@@ -200,26 +204,28 @@ def index():
 		# check if pathogen is dangerous and if it is only in a single city 
 		if ( pathogenIsDangerous( chosenPathogen ) and amountOfPathogensList[chosenPathogen['name']] == 1 ) :
 			
-			# only do a quarantine, if none is active and enough points are available 
-			if (not alreadyUnderQuarantine( chosenCity )) and currentPoints >= 40 :
-				return putUnderQuarantine( chosenCity , min( ( currentPoints-20)//10 , 5 )  )
-		
-	if DEBUG : 
+			# is it mobil too ? 
+			if symbolValues[chosenPathogen['mobility']] > 3 :
+				
+				# only do a quarantine, if none is active and enough points are available 
+				if (not alreadyUnderQuarantine( chosenCity )) and currentPoints >= 40 :
+					return putUnderQuarantine( chosenCity , min( ( currentPoints-20)//10 , 5 )  )
+
+			# if not mobile just close the airport
+			else :
+				if ( not alreadyAirportClosed( chosenCity ) ) and currentPoints >= 30 :
+					return closeAirport( chosenCity , min ( (currentPoints-15 // 5 , 5  ) ) )
+			
+	if ROUNDCHOSEN : 
 		print( 'nothing has been done -> no loop, points : ', currentPoints )
 	return endRound()
 
-
-# reading commandline arguments to set ip and port 
 args , vals = getopt.getopt( sys.argv[1:] , ["i:p:"] , ["ip=" , "port="] ) 
 ip = "0.0.0.0"
 port = 50123
 for arg , val in args :
-	
-	#setting ip
 	if arg in ["-i" , "--ip" ] :
 		ip=val
-	
-	# setting port 
 	elif arg in ["-p" , "--port" ] :
 		port=int ( val )
 
