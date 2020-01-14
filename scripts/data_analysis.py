@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import os
+import sys
 import time
 import json
 import getopt
@@ -8,7 +10,6 @@ import subprocess as sp # spawning servers and client
 
 
 ### globale variables
-
 # paths for server generated data
 base_data_path = '../collected_data/'
 basedatafile='endRound.csv' # baseline data for evaluation
@@ -42,20 +43,20 @@ def read_Pathogen_List() :
 	return pathogenNames
 	
 	
-def analyse() :
-	
+def analyse( fileNamesArr) :
+	print( fileNamesArr )	
 	data_arr = {}
 	
-	for path in file_arr :
+	for path in fileNamesArr :
 		cur_file_data_arr = {} 
-		with open( path , 'r' ) as fh :
+		with open( base_data_path + path + '.csv' , 'r' ) as fh :
 			line = fh.readline().split(',')	
 			line = fh.readline().split(',')
 			while line and line != [''] :
-				cur_file_data_arr[line[0]] = [int ( line[2] ) , line[3] == 'win\n' ]
+				cur_file_data_arr[line[0]] = [int ( line[2] ) , line[3] == 'win\n' or line[3] == 'win'  ]
 				
 				line = fh.readline().split(',')		
-		data_arr[path] = cur_file_data_arr 
+		data_arr[path + '.csv'] = cur_file_data_arr 
 
 	data_lenth = len( data_arr[ basedatafile ] ) 
 	
@@ -89,15 +90,15 @@ def analyse() :
 					loss_equal += 1
 				else :
 					wins_equal += 1
-		if key != basedatafile :
-			print( f'{key} analysis compared to endRound\n needed more rounds : {more_rounds}\nneeded less rounds {less_rounds}\ngames where won too { wins_equal},\nlost too {loss_equal}\n lost instead of won {diff_wins_less}\n won instead of lost {diff_wins_more}' )
+#		if key != basedatafile :
+		print( f'{key} analysis\ngames played : {len(data_arr[key])}\n games won: {win_ctr/20}%  ,abs: {win_ctr}\n compared to endRound\n needed more rounds : {more_rounds}\nneeded less rounds {less_rounds}\ngames where won too { wins_equal},\nlost too {loss_equal}\n lost instead of won {diff_wins_less}\n won instead of lost {diff_wins_more}' )
 
 				
 		eval_arr[key] = [ win_ctr , round_ctr ]
 				
 	print( eval_arr ) 
 
-def extract_seeds_from_csv( path ) :	
+def extract_seeds_from_csv( path ) :
 	with open ( path , 'r' ) as fh :
 		last_seed = '' 
 		seed_collection = []
@@ -113,7 +114,7 @@ def extract_seeds_from_csv( path ) :
 			last_seed = line[0]
 			seed_collection.append( line[0] ) 
 			
-			line = fh.readline() 
+			line = fh.readline()
 	return seed_collection
 
 # function to retrieve the server files and data files 
@@ -147,13 +148,12 @@ def process_ic20_output( string ) :
 	pathogenNames = read_Pathogen_List() 
 	pathogens = [] 
 	string = str( string )
-	
 	for patho in pathogenNames :
 		if string.count( patho , 0 , len(string) ) > 0 :
-			pathogens.append( patho ) 
-	# fix pathogen extraction  -> hardcode list -> check which one is in it 
-	outcome = [] 
-	num = string.count ( 'outcome' , 0 , len(string)  )
+			pathogens.append( patho )
+
+	outcome = '' 
+	num = string.count ( 'outcome' , 0 , len(string) )
 	while num > 0 : 
 		string = string[string.index('outcome')+len('outcome'):]
 		num -=1
@@ -161,8 +161,7 @@ def process_ic20_output( string ) :
 		outcome = 'loss'
 	else:
 		outcome = 'win'
-	rounds = int (string[string.index( 'round' )+len('round')+2:].split(',')[0])
-	print ( f'hey he y{rounds} , {outcome} , {pathogens}' ) 
+	rounds = int (string[string.index( 'round' )+len('round')+2:].split(',')[0]	)
 	return rounds , outcome , pathogens
 
 def generate_seeds ( amount ) :
@@ -186,46 +185,81 @@ def generate_data( seedList , fileBaseNameList ) :
 
 
 	# start all servers with own port
-	serverProcesses = [] 
-	cnt = 0 
+	clientPaths = []
+	cnt = 0
+	serverProcesses  = []  
 	try :
 		for server in fileBaseNameList :
 			curServerPath = base_server_path + server + '.py'
 			port = BASEPORT + cnt
-			serverProcesses.append( sp.Popen( ['python3' , curServerPath , '--port' ,  f'{port}'] ) )  
+			serverProcesses.append( sp.Popen( ['python3' , curServerPath , '--port' ,  f'{port}'] ) )
 			while sp.Popen.poll( serverProcesses[ cnt ] ) != None :
-					pass
+				print( sp.Popen.poll( serverProcesses[ cnt ] ) ) 
+				continue
 			cnt += 1
-		time.sleep( 0.5 ) 	
 
-		data = [ [] ] * len ( fileBaseNameList )  
-		for seed in seedList : 
+		# creating Data array
+		data = [ [] ] * len ( fileBaseNameList ) 
 		
-			# play one seed five times	
+		for path in dataFilePaths :
+			with open ( path , 'w' ) as fh :
+				fh.write( 'seed,count,rounds,outcome,pathogens\n' )
+		# going through seeds 
+		for prog , seed in enumerate ( seedList ) :
+			if prog % 20 == 0 :
+				print ( f'{int ( prog / len( seedList  )  *100)}% done'  )
+			
+			# cycle through Rounds
 			for k in range(1,ROUNDNUMS + 1) :
+				output = ''
+				
 				# cycle through severs with same seed
-				for idx , _ in enumerate ( fileBaseNameList ) :
-					output = ''
-					while len( output ) < 1 :
-						try:
-							output = sp.check_output( [ clientPath , '-s' , f'{seed}' , '-u' , f'http://0.0.0.0:{port}']  ) 
-						except Exception as e :
-							pass 
-					data[idx].append(  process_ic20_output ( output )  )
-		
-		generate_data_files( seedList , dataFilePaths , data ) 
+				for idx , fileBaseName in enumerate ( fileBaseNameList ) :
+					#	if no output is generated  
+					try:
+						while len( output ) < 1 :
+							
+						# starting client for given seed 
+							try:
+								output = str ( sp.check_output( [ clientPath , '-s' , f'{seed}' , '-u' , f'http://0.0.0.0:{BASEPORT+idx}' ] ) )
+							except sp.CalledProcessError as grepexc:
+								continue
+							
+							# parsing values from client output
+						rounds , outcome , pathogens = -1 , 'pending' , [] 
+						
+						rounds , outcome , pathogens = process_ic20_output ( output )
+					#	print ( f'{seed},{k},{rounds},{outcome},{pathogens}' )
+						try :
+							with open ( dataFilePaths[ idx ] , 'a' ) as fh :
+								fh.write( f'{seed},{k},{rounds},{outcome},{pathogens}\n' ) 
+						except Exception as e:
+							print ( f'open file exception: {e}' )
+							pass
+							
+						data[idx].append(  [rounds , outcome , pathogens]  )
+						# catch if something goes worng
+					except Exception as e :
+						print( 'some sprun exception : ' , e ) 
+						continue
+					
 	except Exception as e:
+		print( 'server creating error: ' ,  e ) 
 		pass
 	finally :
 		for process in serverProcesses :
 			sp.Popen.terminate( process ) 
 			while sp.Popen.poll( process ) == None :
 				pass
+
+	# export data into their files 
+	#	print ( 'export data to files' ) 	
+	#generate_data_files( seedList , dataFilePaths] , data ) 
 		
 	return dataFilePaths 
 
 
-def generate_data_files( seedList , pathList , data , pathogens ) :
+def generate_data_files( seedList , pathList , data ) :
 	print ( 'starting data export' )
 	dataIndex = 0
 	for idx , path in enumerate ( pathList ) :
@@ -237,7 +271,6 @@ def generate_data_files( seedList , pathList , data , pathogens ) :
 					line += f'{i}'  
 					if idk != len( pathogens ) :
 						line += ','
-				print( line )
 				f.write( line )
 				 
 	
@@ -261,9 +294,12 @@ def run() :
 		seedList = extract_seeds_from_csv( base_data_path + basedatafile ) 
 
 	# create missing data files for server files
-	datafilePaths = generate_data( seedList , missingDataFiles ) 
+	if len ( missingDataFiles ) > 0 :
+		datafilePaths = generate_data( seedList , missingDataFiles ) 
 	
 	# data analysis  
+	_ , dataFiles = get_file_names() 
+	analyse( dataFiles ) 
 
 if __name__ == "__main__" :
 	run()	
