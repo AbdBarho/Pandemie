@@ -71,7 +71,8 @@ def analyse( fileNamesArr) :
 		wins_equal = 0
 		loss_equal = 0
 		for data in data_arr[key] :
-			cur_data = data_arr[key][data]  
+			cur_data = data_arr[key][data] 
+			print ( f'{key} , data : {cur_data}' } 
 			if cur_data[1] :
 				win_ctr += 1 
 			round_ctr += cur_data[0]
