@@ -160,7 +160,7 @@ def index():
 		print( '******\nERROR IN REQUEST\n', game[ 'error' ], '\n*****' )
 
 	if (game['outcome'] != 'pending'):
-		print('outcome', game['outcome'])
+		#print('outcome', game['outcome'])
 		return endRound()
 
 	currentPoints = int( game['points'] )
@@ -197,7 +197,7 @@ def index():
 
 		# if pathogen is mobile: quarantine
 		if symbolValues[chosenPathogen['mobility']] >= 3 :
-			if alreadyUnderQuarantine( chosenCity ) :
+			if alreadyUnderQuarantine( chosenCity ) or currentPoints < 40 :
 				# saving points to be able to keep quarantine up
 				currentPoints -= 20
 				p('saving 20 for next round to quarantine')
@@ -206,11 +206,11 @@ def index():
 				if currentPoints <= 0 :
 					return endRound()
 			else :
-				return putUnderQuarantine( chosenCity , min ( (currentPoints-20) // 10 , 5 ) )
+				return putUnderQuarantine( chosenCity , min ( max (  (currentPoints-20) // 10 , 2 ) , 5 )  )
 
 		# if pathogen is not mobile
 		else :
-			if alreadyAirportClosed( chosenCity ) :
+			if alreadyAirportClosed( chosenCity ) or currentPoints < 25 :
 				# saving points to be able to keep airport closed
 				currentPoints -= 10
 				p('saving 10 for next round to keep airport closed')
@@ -218,7 +218,7 @@ def index():
 				if currentPoints <= 0 :
 					return endRound()
 			else :
-				return closeAirport( chosenCity , min ( ( currentPoints -15 )  // 5 , 5 ) )
+				return closeAirport( chosenCity , min ( max ( ( currentPoints -15 )  // 5 , 2 ) , 5 ) )
 
 	### nether quarantine nor airport is closed or spare points
 	p('decided against quarantine')
