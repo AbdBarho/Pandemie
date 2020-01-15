@@ -27,3 +27,12 @@ make setup
 ```
 make
 ```
+
+# Usage
+```
+-i --ip :ip to listen on for requests
+    [default 0.0.0.0]
+
+-p --port:port to listen on for requests
+    [default 50123]
+```
