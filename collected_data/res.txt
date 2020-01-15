@@ -1,0 +1,53 @@
+extracting seeds from ../collected_data/endRound.csv
+['endRound', 'leth_mob_infec_dur2', 'leth_mob_infec_dur', 'leth_mob_infec_dur_quarantine_airportclose', 'leth_mob_infec_dur_quarantine_only']
+endRound.csv analysis
+games played : 2000
+ games won: 23.5%  ,abs: 470
+ compared to endRound
+ needed more rounds : 0
+needed less rounds 0
+games where won too 0,
+lost too 0
+ lost instead of won 0
+ won instead of lost 0
+leth_mob_infec_dur2.csv analysis
+games played : 2000
+ games won: 78.6%  ,abs: 1572
+ compared to endRound
+ needed more rounds : 15462
+needed less rounds 11170
+games where won too 435,
+lost too 393
+ lost instead of won 35
+ won instead of lost 1137
+leth_mob_infec_dur.csv analysis
+games played : 2000
+ games won: 59.0%  ,abs: 1180
+ compared to endRound
+ needed more rounds : 10961
+needed less rounds 10934
+games where won too 392,
+lost too 742
+ lost instead of won 78
+ won instead of lost 788
+leth_mob_infec_dur_quarantine_airportclose.csv analysis
+games played : 2000
+ games won: 59.0%  ,abs: 1180
+ compared to endRound
+ needed more rounds : 10961
+needed less rounds 10934
+games where won too 392,
+lost too 742
+ lost instead of won 78
+ won instead of lost 788
+leth_mob_infec_dur_quarantine_only.csv analysis
+games played : 2000
+ games won: 74.4%  ,abs: 1488
+ compared to endRound
+ needed more rounds : 20362
+needed less rounds 8572
+games where won too 441,
+lost too 483
+ lost instead of won 29
+ won instead of lost 1047
+{'endRound.csv': [470, 68405], 'leth_mob_infec_dur2.csv': [1572, 72697], 'leth_mob_infec_dur.csv': [1180, 68432], 'leth_mob_infec_dur_quarantine_airportclose.csv': [1180, 68432], 'leth_mob_infec_dur_quarantine_only.csv': [1488, 80195]}
