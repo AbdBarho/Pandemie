@@ -154,6 +154,11 @@ def index():
 	# processing request
 	pathogenList, amountOfPathogensList, cityList = preprocessInput(game)
 
+	# in the case there are no pathogens left, it means we are winning
+	# but there are still some infected cities that are being 'healed'
+	if len(pathogenList) == 0:
+		return endRound()
+
 	# chose most important pathogen
 	chosenPathogen = pickPathogen( pathogenList , amountOfPathogensList )
 
