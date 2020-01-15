@@ -8,44 +8,31 @@ pathogenPriority=['lethality','mobility','infectivity','duration']
 cityPriority=['population','connections','economy','government','hygiene','awareness' ]
 symbolValues ={'++': 4,'+': 3,'o': 2,'-':1, '--':0}
 
-DEBUG = True
 PREVELANECETHRESHOLD = 0.1
-
-def p(*args):
-	if DEBUG:
-		print(*args)
 
 # actions in a round
 def deployMedication( pathogen , city ):
-	p('deployMedication ', pathogen['name'], ' ', city['name'])
 	return {"type": "deployMedication", "pathogen": pathogen['name'], "city": city['name']}
 
 def developMedication( pathogen ):
-	p('developMedication', pathogen['name'])
 	return {"type": "developMedication", "pathogen": pathogen['name']}
 
 def deployVaccine( pathogen , city ):
-	p('deployVaccine ', pathogen['name'], ' ', city['name'])
 	return {"type": "deployVaccine", "pathogen": pathogen['name'], "city": city['name']}
 
 def developVaccine( pathogen ):
-	p('developVaccine', pathogen['name'])
 	return {"type": "developVaccine", "pathogen": pathogen['name']}
 
 def closeConnection( fromcity , toCity , rounds ):
-	p(f'closeConnection from : {fromcity} to: {toCity} for {rounds} rounds')
 	return {"type": "closeConnection", "fromCity": fromcity['name'], "toCity": toCity['name'], "rounds": rounds}
 
 def closeAirport(city, rounds):
-	p('closeAirport')
 	return {"type": "closeAirport", "city" : city['name']  , "rounds" : rounds}
 
 def putUnderQuarantine( city , rounds ):
-	p(f'putUnderQuarantine {rounds} ')
 	return {"type": "putUnderQuarantine",	"city": city['name'] , "rounds": rounds }
 
 def endRound():
-	p('endRound\n-----')
 	return {"type" : "endRound"}
 
 
@@ -154,11 +141,7 @@ def vaccineDeployed( pathogen , city ):
 def index():
 	game = request.json
 
-	if 'error' in game.keys() :
-		print( '******\nERROR IN REQUEST\n', game[ 'error' ], '\n*****' )
-
 	if (game['outcome'] != 'pending'):
-		p('outcome', game['outcome'])
 		return endRound()
 
 	currentPoints = int( game['points'] )
@@ -192,7 +175,6 @@ def index():
 		if alreadyUnderQuarantine( chosenCity ) or currentPoints - currentPointReduction < 40 :
 			# saving points to be able to keep quarantine up
 			currentPointReduction = max ( 20 , currentPointReduction )
-			p('saving 20 for next round to quarantine')
 
 			# not able to to something
 			if currentPoints-currentPointReduction <= 0 :
@@ -202,7 +184,6 @@ def index():
 
 
 	# no quarantine or spare points
-	p('decided against quarantine')
 	if currentPoints - currentPointReduction > 100 :
 		for pathogen in pathogenList :
 			if vaccineNotInDevAndNotAvail ( pathogen , game ) :
@@ -210,17 +191,9 @@ def index():
 			if medicationNotInDevAndNotAvail( pathogen , game ) :
 				return developMedication( pathogen )
 
-	if currentPoints - currentPointReduction > 60 :
-		for pathogen in pathogenList :
-			p(f'pathogen : {pathogen}')
-			p(f'chosen pathogen : {chosenPathogen} , {pathogen == chosenPathogen}')
-
-	p('more than 100 points:', currentPoints > 100)
-
 	# saving points
 	if not pathogenIsDangerous( chosenPathogen ) :
 		currentPointReduction = max ( 40 , currentPointReduction )
-		p('saving 40 points')
 
 	# infectivity bigger than duration prefers vaccine
 	if symbolValues[ chosenPathogen [ 'infectivity' ] ] > symbolValues[ chosenPathogen [ 'duration' ] ] :
@@ -293,7 +266,6 @@ def index():
 				if ev['type'] == 'outbreak' and medicationAvailable( ev['pathogen'] , game ) and ev['prevalence'] > PREVELANECETHRESHOLD :
 					return deployMedication(ev['pathogen'], city)
 
-	p(f'nothing has been done -> no loop, points : {game["points"]}, amount of pathogens: {len(pathogenList)}')
 	return endRound()
 
 # server config through argument parsing 
