@@ -270,7 +270,7 @@ def index():
 
 # server config through argument parsing 
 # port and ip modification
-args , vals = getopt.getopt( sys.argv[1:] , ["i:p:"] , ["ip=" , "port="] )
+args , vals = getopt.getopt( sys.argv[1:] , ["hi:p:"] , ["help=" ,"ip=" , "port="] )
 ip = "0.0.0.0"
 port = 50123
 for arg , val in args :
@@ -278,7 +278,14 @@ for arg , val in args :
 		ip=val
 	elif arg in ["-p" , "--port" ] :
 		port=int ( val )
-
+	elif arg in ["-h" , "--help" ] :
+		print( f'-i --ip :\t ip to listen on for requests [default 0.0.0.0]' )
+		print( f'-p --port:\tport to listen on for requests [default 50123]' )
+		print( f'-h --help: shows this help' )
+		sys.exit(0)
+	else :
+		print( 'invalid arguments, --help to see usage' )
+		sys.exit(-1) 
 # server run 
 BaseRequest.MEMFILE_MAX = 10 * 1024 * 1024
 run(host=ip, port=port, quiet=True)
